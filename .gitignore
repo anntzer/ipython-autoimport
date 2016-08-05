@@ -1,0 +1,11 @@
+**/.ipynb_checkpoints/
+*.egg-info/
+.cache/
+build/
+dist/
+htmlcov/
+oprofile_data/
+.*.swp
+*.pyc
+.coverage
+.gdb_history
