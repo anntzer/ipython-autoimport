@@ -26,6 +26,7 @@ Out[1]: [<matplotlib.lines.Line2D at 0x7f7e253552b0>]
 Heavily inspired from @OrangeFlash81's [version](http://github.com/OrangeFlash81/ipython-aut-import), with a few improvements:
 - Learns your preferred aliases.
 - Suppresses irrelevant chained tracebacks.
+- Import submodules.
 - `pip`-installable.
 
 Installation

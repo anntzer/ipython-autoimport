@@ -70,17 +70,24 @@ def _custom_exc(ip, etype, value, tb, tb_offset=None):
         def _suppress_context():
             if value.__context__ == _current_nameerror_stack[-1]:
                 value.__suppress_context__ = True
-        if not isinstance(value, NameError):
-            return
         # Retrieve the missing name.
-        match = re.match(r"\Aname '(.*)' is not defined\Z", str(value))
+        tp_regexes = [
+            (NameError, r"\Aname '(.+)' is not defined()\Z"),
+            (AttributeError, r"\Amodule '(.+)' has no attribute '(.+)'\Z")]
+        match = next(filter(None, (re.match(regex, str(value))
+                                   if isinstance(value, tp) else None
+                                   for tp, regex in tp_regexes)),
+                     None)
         if not match:
             return
-        name, = match.groups()
-        # Was it used as a "module"?
+        name, attr = match.groups()
         (_, _, source), = ip.history_manager.get_tail(
             1, raw=False, include_latest=True)
-        as_module = _maybe_modulename(source, name)
+        if not attr:  # NameError: was it used as a "module"?
+            as_module = _maybe_modulename(source, name)
+        else:  # AttributeError on a module.
+            as_module = True
+            name = "{}.{}".format(name, attr)
         # Find single matching import, if any.
         if _import_cache is None:
             _import_cache = _load_import_cache(ip)
