@@ -51,6 +51,12 @@ def _load_import_cache(ip):
     return import_cache
 
 
+def _report(ip, msg):
+    cs = PyColorize.Parser().color_table[ip.colors].colors
+    # Token.NUMBER: (light) cyan, looks reasonable.
+    print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
+
+
 _import_cache = None
 _current_nameerror_stack = [...]  # Not None.
 
@@ -97,12 +103,11 @@ def _custom_exc(ip, etype, value, tb, tb_offset=None):
                    {entry for entry in _import_cache.get(name, {})
                     if entry.startswith("from ")})
         if len(imports) != 1:
+            if len(imports) > 1:
+                _report(ip, "multiple imports available for {!r}".format(name))
             return
         import_source, = imports
-        cs = PyColorize.Parser().color_table[ip.colors].colors
-        # Token.NUMBER: (light) cyan, looks reasonable.
-        print("{}Autoimport: {}{}".format(
-            cs[token.NUMBER], cs["normal"], import_source))
+        _report(ip, import_source)
         try:
             _current_nameerror_stack.append(value)  # Prevent chaining.
             er = ip.run_cell(import_source)
