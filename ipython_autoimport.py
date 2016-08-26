@@ -1,3 +1,9 @@
+"""Automagically import missing modules in IPython.
+
+To activate, pip-install and append the output of `python -mipython_autoimport`
+to `~/.ipython/profile_default/ipython_config.py`.
+"""
+
 import ast
 from contextlib import ExitStack
 import re
@@ -7,6 +13,8 @@ from IPython.utils import PyColorize
 
 
 def _maybe_modulename(source, name):
+    """Check whether an attribute of `name` is accessed in `source`.
+    """
 
     class Visitor(ast.NodeVisitor):
         def visit_Attribute(self, node):
@@ -21,6 +29,9 @@ def _maybe_modulename(source, name):
 
 
 def _load_import_cache(ip):
+    """Load a mapping of names to import statements from the IPython history.
+    """
+
     import_cache = {}
 
     def _format_alias(alias):
@@ -52,6 +63,8 @@ def _load_import_cache(ip):
 
 
 def _report(ip, msg):
+    """Output a message prepended by a colored `Autoimport:` tag.
+    """
     cs = PyColorize.Parser().color_table[ip.colors].colors
     # Token.NUMBER: (light) cyan, looks reasonable.
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
@@ -61,6 +74,9 @@ _import_cache = None
 _current_nameerror_stack = [...]  # Not None.
 
 def _custom_exc(ip, etype, value, tb, tb_offset=None):
+    """Exception handler; attempts to reexecute after loading missing modules.
+    """
+
     global _import_cache
 
     with ExitStack() as stack:
@@ -121,6 +137,8 @@ def _custom_exc(ip, etype, value, tb, tb_offset=None):
 
 
 def load_ipython_extension(ip):
+    """Entry point for the `ipython_autoimport` extension.
+    """
     ip.set_custom_exc((Exception,), _custom_exc)
 
 
