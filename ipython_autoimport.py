@@ -139,7 +139,9 @@ def _custom_exc(ip, etype, value, tb, tb_offset=None):
 def load_ipython_extension(ip):
     """Entry point for the `ipython_autoimport` extension.
     """
-    ip.set_custom_exc((Exception,), _custom_exc)
+    # Only register for the caught exceptions.  In particular, the history
+    # seems to get confused when SyntaxErrors are caught too.
+    ip.set_custom_exc((NameError, AttributeError), _custom_exc)
 
 
 if __name__ == "__main__":
