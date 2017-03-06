@@ -5,30 +5,19 @@ to `~/.ipython/profile_default/ipython_config.py`.
 """
 
 import ast
-from contextlib import ExitStack
-import re
+import builtins
+from collections import ChainMap
+import copy
+import functools
+import importlib
 import token
+from types import ModuleType
 
 from IPython.utils import PyColorize
 
 
-def _maybe_modulename(source, name):
-    """Check whether an attribute of `name` is accessed in `source`.
-    """
-
-    class Visitor(ast.NodeVisitor):
-        def visit_Attribute(self, node):
-            nonlocal retval
-            if isinstance(node.value, ast.Name) and node.value.id == name:
-                retval = True
-            return self.generic_visit(node)
-
-    retval = False
-    Visitor().visit(ast.parse(source))
-    return retval
-
-
-def _load_import_cache(ip):
+@functools.lru_cache(1)
+def _get_import_cache(ip):
     """Load a mapping of names to import statements from the IPython history.
     """
 
@@ -70,78 +59,54 @@ def _report(ip, msg):
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
-_import_cache = None
-_current_nameerror_stack = [...]  # Not None.
-
-def _custom_exc(ip, etype, value, tb, tb_offset=None):
-    """Exception handler; attempts to reexecute after loading missing modules.
+class SubmoduleAutoImport(ModuleType):
+    """Wrapper module type that automatically imports submodules.
     """
 
-    global _import_cache
-
-    with ExitStack() as stack:
-        stack.callback(ip.showtraceback)
-        # Is the innermost frame the IPython interactive environment?
-        while tb.tb_next:
-            tb = tb.tb_next
-        if not re.match(r"\A<ipython-input-.*>\Z",
-                        tb.tb_frame.f_code.co_filename):
-            return
-        # Are we just suppressing a context?
-        @stack.callback
-        def _suppress_context():
-            if value.__context__ == _current_nameerror_stack[-1]:
-                value.__suppress_context__ = True
-        # Retrieve the missing name.
-        tp_regexes = [
-            (NameError, r"\Aname '(.+)' is not defined()\Z"),
-            (AttributeError, r"\Amodule '(.+)' has no attribute '(.+)'\Z")]
-        match = next(filter(None, (re.match(regex, str(value))
-                                   if isinstance(value, tp) else None
-                                   for tp, regex in tp_regexes)),
-                     None)
-        if not match:
-            return
-        name, attr = match.groups()
-        (_, _, source), = ip.history_manager.get_tail(
-            1, raw=False, include_latest=True)
-        if not attr:  # NameError: was it used as a "module"?
-            as_module = _maybe_modulename(source, name)
-        else:  # AttributeError on a module.
-            as_module = True
-            name = "{}.{}".format(name, attr)
-        # Find single matching import, if any.
-        if _import_cache is None:
-            _import_cache = _load_import_cache(ip)
-        imports = (_import_cache.get(name, {"import {}".format(name)})
-                   if as_module else
-                   # If not a module, only keep "from ... import <name>".
-                   {entry for entry in _import_cache.get(name, {})
-                    if entry.startswith("from ")})
-        if len(imports) != 1:
-            if len(imports) > 1:
-                _report(ip, "multiple imports available for {!r}".format(name))
-            return
-        import_source, = imports
-        _report(ip, import_source)
+    def __getattr__(self, name):
         try:
-            _current_nameerror_stack.append(value)  # Prevent chaining.
-            er = ip.run_cell(import_source)
-            if er.error_in_exec:
-                return
-            # Anyways, success!
-            stack.pop_all()
-            ip.run_cell(source)
-        finally:
-            _current_nameerror_stack.pop()
+            return importlib.import_module("{}.{}".format(self.__name__, name))
+        except Exception:
+            raise AttributeError("module {!r} has no attribute {!r}"
+                                 .format(self.__name__, name)) from None
 
 
-def load_ipython_extension(ip):
-    """Entry point for the `ipython_autoimport` extension.
+class AutoImportMap(ChainMap):
+    """Mapping that attempts to resolve missing keys through imports.
     """
-    # Only register for the caught exceptions.  In particular, the history
-    # seems to get confused when SyntaxErrors are caught too.
-    ip.set_custom_exc((NameError, AttributeError), _custom_exc)
+
+    def __getitem__(self, name):
+        try:
+            value = super().__getitem__(name)
+        except KeyError as key_error:
+            # Find single matching import, if any.
+            imports = _get_import_cache(_ipython).get(
+                name, {"import {}".format(name)})
+            if len(imports) != 1:
+                if len(imports) > 1:
+                    _report(_ipython,
+                            "multiple imports available for {!r}".format(name))
+                return
+            import_source, = imports
+            _report(_ipython, import_source)
+            try:
+                exec(import_source, self.maps[0])  # exec wants a dict.
+            except Exception as import_error:
+                raise key_error
+            else:
+                value = super().__getitem__(name)
+        if isinstance(value, ModuleType):
+            wrapper = SubmoduleAutoImport(value.__name__)
+            vars(wrapper).update(vars(value))
+            return wrapper
+        else:
+            return value
+
+
+def load_ipython_extension(ipython):
+    global _ipython
+    _ipython = ipython
+    _ipython.user_ns = AutoImportMap(_ipython.user_ns, vars(builtins))
 
 
 if __name__ == "__main__":

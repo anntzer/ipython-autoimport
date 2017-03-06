@@ -23,10 +23,12 @@ Autoimport: from matplotlib import pyplot as plt
 Out[1]: [<matplotlib.lines.Line2D at 0x7f7e253552b0>]
 ```
 
-Heavily inspired from @OrangeFlash81's [version](http://github.com/OrangeFlash81/ipython-aut-import), with a few improvements:
+Inspired from @OrangeFlash81's [version](http://github.com/OrangeFlash81/ipython-aut-import), with many improvements:
+- Does not rely on re-execution, but instead hooks the user namespace; thus,
+  safe even in the presence of side effects, and works with magics too.
 - Learns your preferred aliases.
 - Suppresses irrelevant chained tracebacks.
-- Import submodules.
+- Import submodules (though not sub-submodules).
 - `pip`-installable.
 
 Installation
