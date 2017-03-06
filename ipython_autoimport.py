@@ -10,6 +10,8 @@ from collections import ChainMap
 import copy
 import functools
 import importlib
+import os
+import sys
 import token
 from types import ModuleType
 
@@ -110,6 +112,12 @@ def load_ipython_extension(ipython):
 
 
 if __name__ == "__main__":
+    if os.isatty(sys.stdout.fileno()):
+        print("""\
+# Please append the output of this command to the
+# output of `ipython profile locate` (typically
+# `~/.ipython/profile_default/ipython_config.py`)
+""")
     print("""\
 c.InteractiveShellApp.exec_lines.append(
     "try:\\n    %load_ext ipython_autoimport\\nexcept ImportError: pass")""")
