@@ -61,18 +61,6 @@ def _report(ip, msg):
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
-class SubmoduleAutoImport(ModuleType):
-    """Wrapper module type that automatically imports submodules.
-    """
-
-    def __getattr__(self, name):
-        try:
-            return importlib.import_module("{}.{}".format(self.__name__, name))
-        except Exception:
-            raise AttributeError("module {!r} has no attribute {!r}"
-                                 .format(self.__name__, name)) from None
-
-
 class AutoImportMap(ChainMap):
     """Mapping that attempts to resolve missing keys through imports.
     """
@@ -98,8 +86,28 @@ class AutoImportMap(ChainMap):
             else:
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
-            wrapper = SubmoduleAutoImport(value.__name__)
-            vars(wrapper).update(vars(value))
+            module = value
+
+            class SubmoduleAutoImport(ModuleType):
+                """Wrapper module type that automatically imports submodules.
+
+                Implemented here to close over the real module.
+                """
+
+                def __setattr__(self, name, value):
+                    setattr(module, name, value)
+
+                def __getattribute__(self, name):
+                    try:
+                        return getattr(module, name)
+                    except AttributeError as exc:
+                        try:
+                            return importlib.import_module(
+                                "{}.{}".format(self.__name__, name))
+                        except Exception:
+                            raise exc from None
+
+            wrapper = SubmoduleAutoImport(module.__name__)
             return wrapper
         else:
             return value
