@@ -78,12 +78,12 @@ class AutoImportMap(ChainMap):
                             "multiple imports available for {!r}".format(name))
                 return
             import_source, = imports
-            _report(_ipython, import_source)
             try:
                 exec(import_source, self.maps[0])  # exec wants a dict.
             except Exception as import_error:
                 raise key_error
             else:
+                _report(_ipython, import_source)
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
             module = value
@@ -101,11 +101,13 @@ class AutoImportMap(ChainMap):
                     try:
                         return getattr(module, name)
                     except AttributeError as exc:
+                        import_target = "{}.{}".format(self.__name__, name)
                         try:
-                            return importlib.import_module(
-                                "{}.{}".format(self.__name__, name))
+                            return importlib.import_module(import_target)
                         except Exception:
                             raise exc from None
+                        else:
+                            _report(_ipython, import_target)
 
             wrapper = SubmoduleAutoImport(module.__name__)
             return wrapper
