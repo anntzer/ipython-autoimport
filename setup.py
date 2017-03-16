@@ -7,6 +7,7 @@ if __name__ == "__main__":
         version="0.0",
         description="Autoimport missing modules in IPython",
         author="Antony Lee",
+        url="https://github.com/anntzer/ipython-autoimport",
         license="BSD",
         classifiers=[
             "Development Status :: 4 - Beta",
