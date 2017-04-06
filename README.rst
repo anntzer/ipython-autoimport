@@ -35,7 +35,7 @@ improvements:
   safe even in the presence of side effects, and works with magics too.
 - Learns your preferred aliases.
 - Suppresses irrelevant chained tracebacks.
-- Auto-imports submodules (though not sub-submodules).
+- Auto-imports submodules.
 - `pip`-installable.
 
 Installation

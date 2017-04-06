@@ -61,6 +61,40 @@ def _report(ip, msg):
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
+def _make_submodule_autoimport_module(module):
+    """Return a module sub-instance that automatically imports submodules.
+
+    Implemented as a factory function to close over the real module.
+    """
+
+    if not hasattr(module, "__path__"):  # We only need to wrap packages.
+        return module
+
+    class SubmoduleAutoImport(ModuleType):
+        @property
+        def __dict__(self):
+            return module.__dict__
+
+        # Overriding __setattr__ is needed even when __dict__ is overridden.
+        def __setattr__(self, name, value):
+            setattr(module, name, value)
+
+        def __getattr__(self, name):
+            import_target = "{}.{}".format(self.__name__, name)
+            try:
+                submodule = importlib.import_module(import_target)
+            except Exception:
+                pass
+            else:
+                _report(_ipython, "import {}".format(import_target))
+                return _make_submodule_autoimport_module(submodule)
+            # Raise the normal exception without chaining an import exception.
+            return getattr(module, name)
+
+    return SubmoduleAutoImport(module.__name__)
+
+
+
 class AutoImportMap(ChainMap):
     """Mapping that attempts to resolve missing keys through imports.
     """
@@ -86,31 +120,7 @@ class AutoImportMap(ChainMap):
                 _report(_ipython, import_source)
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
-            module = value
-
-            class SubmoduleAutoImport(ModuleType):
-                """Wrapper module type that automatically imports submodules.
-
-                Implemented here to close over the real module.
-                """
-
-                def __setattr__(self, name, value):
-                    setattr(module, name, value)
-
-                def __getattribute__(self, name):
-                    try:
-                        return getattr(module, name)
-                    except AttributeError as exc:
-                        import_target = "{}.{}".format(self.__name__, name)
-                        try:
-                            return importlib.import_module(import_target)
-                        except Exception:
-                            raise exc from None
-                        else:
-                            _report(_ipython, import_target)
-
-            wrapper = SubmoduleAutoImport(module.__name__)
-            return wrapper
+            return _make_submodule_autoimport_module(value)
         else:
             return value
 
