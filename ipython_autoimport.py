@@ -17,6 +17,14 @@ from types import ModuleType
 
 from IPython.utils import PyColorize
 
+try:
+    import _ipython_autoimport_version
+except ImportError:
+    from pip._vendor import pkg_resources
+    __version__ = pkg_resources.get_distribution("ipython-autoimport").version
+else:
+    __version__ = _ipython_autoimport_version.get_versions()["version"]
+
 
 @functools.lru_cache(1)
 def _get_import_cache(ip):

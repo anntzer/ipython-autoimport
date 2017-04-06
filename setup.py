@@ -1,10 +1,12 @@
 from setuptools import setup
+import versioneer
 
 
 if __name__ == "__main__":
     setup(
-        name="ipython_autoimport",
-        version="0.0",
+        name="ipython-autoimport",
+        version=versioneer.get_version(),
+        cmdclass=versioneer.get_cmdclass(),
         description="Autoimport missing modules in IPython",
         author="Antony Lee",
         url="https://github.com/anntzer/ipython-autoimport",
