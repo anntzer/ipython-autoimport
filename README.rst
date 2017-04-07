@@ -33,7 +33,7 @@ improvements:
 
 - Does not rely on re-execution, but instead hooks the user namespace; thus,
   safe even in the presence of side effects, and works with magics too.
-- Learns your preferred aliases.
+- Learns your preferred aliases (from the history).
 - Suppresses irrelevant chained tracebacks.
 - Auto-imports submodules.
 - `pip`-installable.
@@ -41,10 +41,13 @@ improvements:
 Installation
 ------------
 
-::
+Pick one among:
 
-   $ pip install git+https://github.com/anntzer/ipython-autoimport
+.. code-block:: sh
 
-then append the output of `python -mipython_autoimport`
-to the output of `ipython profile locate` (typically
-`~/.ipython/profile_default/ipython_config.py`).
+   $ pip install ipython-autoimport  # from PyPI
+   $ pip install git+https://github.com/anntzer/ipython-autoimport  # from Github
+
+then append the output of ``python -mipython_autoimport``
+to the output of ``ipython profile locate`` (typically
+``~/.ipython/profile_default/ipython_config.py``).

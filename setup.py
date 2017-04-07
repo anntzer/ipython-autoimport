@@ -7,7 +7,8 @@ if __name__ == "__main__":
         name="ipython-autoimport",
         version=versioneer.get_version(),
         cmdclass=versioneer.get_cmdclass(),
-        description="Autoimport missing modules in IPython",
+        description="Automagically import missing modules in IPython.",
+        long_description=open("README.rst").read(),
         author="Antony Lee",
         url="https://github.com/anntzer/ipython-autoimport",
         license="BSD",
@@ -22,4 +23,5 @@ if __name__ == "__main__":
         ],
         py_modules=["ipython_autoimport"],
         python_requires=">=3.3",
+        install_requires=["ipython"],
     )
