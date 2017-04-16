@@ -6,8 +6,6 @@ to `~/.ipython/profile_default/ipython_config.py`.
 
 import ast
 import builtins
-from collections import ChainMap
-import copy
 import functools
 import importlib
 import os
@@ -69,7 +67,7 @@ def _report(ip, msg):
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
-def _make_submodule_autoimport_module(module):
+def _make_submodule_autoimporter_module(module):
     """Return a module sub-instance that automatically imports submodules.
 
     Implemented as a factory function to close over the real module.
@@ -78,7 +76,7 @@ def _make_submodule_autoimport_module(module):
     if not hasattr(module, "__path__"):  # We only need to wrap packages.
         return module
 
-    class SubmoduleAutoImport(ModuleType):
+    class SubmoduleAutoImporterModule(ModuleType):
         @property
         def __dict__(self):
             return module.__dict__
@@ -95,15 +93,15 @@ def _make_submodule_autoimport_module(module):
                 pass
             else:
                 _report(_ipython, "import {}".format(import_target))
-                return _make_submodule_autoimport_module(submodule)
+                return _make_submodule_autoimporter_module(submodule)
             # Raise the normal exception without chaining an import exception.
             return getattr(module, name)
 
-    return SubmoduleAutoImport(module.__name__)
+    return SubmoduleAutoImporterModule(module.__name__)
 
 
 
-class AutoImportMap(ChainMap):
+class AutoImporterMap(dict):
     """Mapping that attempts to resolve missing keys through imports.
     """
 
@@ -121,14 +119,14 @@ class AutoImportMap(ChainMap):
                 return
             import_source, = imports
             try:
-                exec(import_source, self.maps[0])  # exec wants a dict.
+                exec(import_source, self)  # exec recasts self as a dict.
             except Exception as import_error:
                 raise key_error
             else:
                 _report(_ipython, import_source)
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
-            return _make_submodule_autoimport_module(value)
+            return _make_submodule_autoimporter_module(value)
         else:
             return value
 
@@ -136,7 +134,15 @@ class AutoImportMap(ChainMap):
 def load_ipython_extension(ipython):
     global _ipython
     _ipython = ipython
-    _ipython.user_ns = AutoImportMap(_ipython.user_ns, vars(builtins))
+    # We would prefer patching `user_module` (the `__main__` module) as
+    # IPython passes the `__dict__` of that module as globals -- this would be
+    # necessary to support autoimport in comprehension scopes such as `[x for x
+    # in <autoimported-module-attribute>]` (as the comprehension scope directly
+    # tries resolves into the globals).
+    # Unfortunately this seems impossible(?) as `exec` requires its `globals`
+    # argument (and only it) to be exactly a dict (and does not care about
+    # overridden methods in subclasses).
+    _ipython.user_ns = AutoImporterMap(_ipython.user_ns)
 
 
 if __name__ == "__main__":

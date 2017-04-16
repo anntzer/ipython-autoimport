@@ -36,7 +36,7 @@ improvements:
 - Learns your preferred aliases (from the history).
 - Suppresses irrelevant chained tracebacks.
 - Auto-imports submodules.
-- `pip`-installable.
+- ``pip``-installable.
 
 Installation
 ------------
@@ -51,3 +51,10 @@ Pick one among:
 then append the output of ``python -mipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
+
+Limitations
+-----------
+
+- Comprehension scopes (e.g. ``[x for x in <autoimported-module-attribute>]``)
+  do not support autoimporting.  The reason for this limitation is described in
+  detail as a comment to ``load_ipython_extension``.  A fix would be welcome.
