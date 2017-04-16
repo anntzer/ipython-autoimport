@@ -52,6 +52,8 @@ then append the output of ``python -mipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
+Run tests with ``pytest``.
+
 Limitations
 -----------
 
