@@ -86,16 +86,21 @@ def _make_submodule_autoimporter_module(module):
             setattr(module, name, value)
 
         def __getattr__(self, name):
-            import_target = "{}.{}".format(self.__name__, name)
             try:
-                submodule = importlib.import_module(import_target)
-            except Exception:
-                pass
-            else:
-                _report(_ipython, "import {}".format(import_target))
-                return _make_submodule_autoimporter_module(submodule)
-            # Raise the normal exception without chaining an import exception.
-            return getattr(module, name)
+                value = getattr(module, name)
+                if isinstance(value, ModuleType):
+                    value = _make_submodule_autoimporter_module(value)
+                return value
+            except AttributeError:
+                import_target = "{}.{}".format(self.__name__, name)
+                try:
+                    submodule = importlib.import_module(import_target)
+                except Exception:
+                    pass
+                else:
+                    _report(_ipython, "import {}".format(import_target))
+                    return _make_submodule_autoimporter_module(submodule)
+                raise  # Raise AttributeError without chaining ImportError.
 
     return SubmoduleAutoImporterModule(module.__name__)
 
