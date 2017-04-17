@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.fixture(scope="module")
-def ip():
+def global_ip():
     ip = IPython.testing.globalipapp.start_ipython()
     path = Path(__file__)
     ip.run_cell("import sys; sys.path[:0] = [{!r}, {!r}]".format(
@@ -15,9 +15,46 @@ def ip():
     return ip
 
 
+@pytest.fixture
+def ip(global_ip):
+    global_ip.run_cell("%reset -f")
+    yield global_ip
+    with IPython.utils.io.capture_output():
+        global_ip.run_cell(
+            "for name in [name for name, mod in sys.modules.items() "
+                         "if getattr(mod, '__file__', '').startswith({!r})]:\n"
+            "    del sys.modules[name]"
+            .format(str(Path(__file__).parent)))
+
+
 @pytest.mark.parametrize("name", ["a", "a.b", "a.b.c"])
 def test_autoimport(ip, name):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("{}.__name__".format(name))
+    parts = name.split(".")
     assert (captured.stdout
-            == "Autoimport: import {0}\nOut[1]: {0!r}\n".format(name))
+            == "{}Out[1]: {!r}\n".format(
+                "".join("Autoimport: import {}\n".format(
+                    ".".join(parts[:i + 1])) for i in range(len(parts))),
+                name))
+
+
+def test_sub_submodule(ip):
+    ip.run_cell("import a.b")
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("a.b.c.__name__")
+    assert (captured.stdout == "Autoimport: import a.b.c\nOut[1]: 'a.b.c'\n")
+
+
+def test_no_import(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("a.not_here")
+    assert (captured.stdout.splitlines()[-1]
+            == "AttributeError: module 'a' has no attribute 'not_here'")
+    assert "ImportError" not in captured.stdout
+
+
+def test_setattr(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("a; a.b = 42; 'b' in vars(a), a.b")
+    assert captured.stdout == "Autoimport: import a\nOut[1]: (True, 42)\n"
