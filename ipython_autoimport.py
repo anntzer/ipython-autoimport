@@ -6,7 +6,6 @@ to `~/.ipython/profile_default/ipython_config.py`.
 
 import ast
 import builtins
-import functools
 import importlib
 import os
 import sys
@@ -24,8 +23,7 @@ else:
     __version__ = _ipython_autoimport_version.get_versions()["version"]
 
 
-@functools.lru_cache(1)
-def _get_import_cache(ip):
+def _get_import_cache(ipython):
     """Load a mapping of names to import statements from the IPython history.
     """
 
@@ -49,7 +47,8 @@ def _get_import_cache(ip):
                  .add("from {} {}".format(node.module, _format_alias(alias))))
 
     for _, _, entry in (
-            ip.history_manager.get_tail(ip.history_load_length, raw=False)):
+            ipython.history_manager.get_tail(
+                ipython.history_load_length, raw=False)):
         try:
             parsed = ast.parse(entry)
         except SyntaxError:
@@ -59,18 +58,18 @@ def _get_import_cache(ip):
     return import_cache
 
 
-def _report(ip, msg):
+def _report(ipython, msg):
     """Output a message prepended by a colored `Autoimport:` tag.
     """
     # Tell prompt_toolkit to pass ANSI escapes through (PTK#187); harmless on
     # pre-PTK versions.
     sys.stdout._raw = True
-    cs = PyColorize.Parser().color_table[ip.colors].colors
+    cs = PyColorize.Parser().color_table[ipython.colors].colors
     # Token.NUMBER: bright blue (cyan), looks reasonable.
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
-def _make_submodule_autoimporter_module(module):
+def _make_submodule_autoimporter_module(ipython, module):
     """Return a module sub-instance that automatically imports submodules.
 
     Implemented as a factory function to close over the real module.
@@ -92,7 +91,7 @@ def _make_submodule_autoimporter_module(module):
             try:
                 value = getattr(module, name)
                 if isinstance(value, ModuleType):
-                    value = _make_submodule_autoimporter_module(value)
+                    value = _make_submodule_autoimporter_module(ipython, value)
                 return value
             except AttributeError:
                 import_target = "{}.{}".format(self.__name__, name)
@@ -101,28 +100,32 @@ def _make_submodule_autoimporter_module(module):
                 except Exception:
                     pass
                 else:
-                    _report(_ipython, "import {}".format(import_target))
-                    return _make_submodule_autoimporter_module(submodule)
+                    _report(ipython, "import {}".format(import_target))
+                    return _make_submodule_autoimporter_module(
+                        ipython, submodule)
                 raise  # Raise AttributeError without chaining ImportError.
 
     return SubmoduleAutoImporterModule(module.__name__)
-
 
 
 class AutoImporterMap(dict):
     """Mapping that attempts to resolve missing keys through imports.
     """
 
+    def __init__(self, ipython):
+        super().__init__(ipython.user_ns)
+        self._ipython = ipython
+        self._import_cache = _get_import_cache(ipython)
+
     def __getitem__(self, name):
         try:
             value = super().__getitem__(name)
         except KeyError as key_error:
             # Find single matching import, if any.
-            imports = _get_import_cache(_ipython).get(
-                name, {"import {}".format(name)})
+            imports = self._import_cache.get(name, {"import {}".format(name)})
             if len(imports) != 1:
                 if len(imports) > 1:
-                    _report(_ipython,
+                    _report(self._ipython,
                             "multiple imports available for {!r}".format(name))
                 return
             import_source, = imports
@@ -131,10 +134,10 @@ class AutoImporterMap(dict):
             except Exception as import_error:
                 raise key_error
             else:
-                _report(_ipython, import_source)
+                _report(self._ipython, import_source)
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
-            return _make_submodule_autoimporter_module(value)
+            return _make_submodule_autoimporter_module(self._ipython, value)
         else:
             return value
 
@@ -152,15 +155,13 @@ def load_ipython_extension(ipython):
     #
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
-    global _ipython
-    _ipython = ipython
-    _ipython.user_ns = _ipython.Completer.namespace = (
-        AutoImporterMap(_ipython.user_ns))
+    ipython.user_ns = ipython.Completer.namespace = (
+        AutoImporterMap(ipython))
     # Tab-completion occurs in a different thread from evaluation and history
     # saving, and the history sqlite database can only be accessed from one
     # thread.  Thus, we need to first load the import cache using the correct
     # (latter) thread, instead of lazily.
-    _get_import_cache(_ipython)
+    _get_import_cache(ipython)
 
 
 if __name__ == "__main__":
