@@ -5,7 +5,6 @@ to `~/.ipython/profile_default/ipython_config.py`.
 """
 
 import ast
-import builtins
 import importlib
 import os
 import sys
@@ -127,11 +126,11 @@ class AutoImporterMap(dict):
                 if len(imports) > 1:
                     _report(self._ipython,
                             "multiple imports available for {!r}".format(name))
-                return
+                raise key_error
             import_source, = imports
             try:
                 exec(import_source, self)  # exec recasts self as a dict.
-            except Exception as import_error:
+            except Exception:  # Normally, ImportError.
                 raise key_error
             else:
                 _report(self._ipython, import_source)
