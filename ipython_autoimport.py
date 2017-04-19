@@ -62,8 +62,11 @@ def _get_import_cache(ip):
 def _report(ip, msg):
     """Output a message prepended by a colored `Autoimport:` tag.
     """
+    # Tell prompt_toolkit to pass ANSI escapes through (PTK#187); harmless on
+    # pre-PTK versions.
+    sys.stdout._raw = True
     cs = PyColorize.Parser().color_table[ip.colors].colors
-    # Token.NUMBER: (light) cyan, looks reasonable.
+    # Token.NUMBER: bright blue (cyan), looks reasonable.
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
@@ -153,6 +156,11 @@ def load_ipython_extension(ipython):
     _ipython = ipython
     _ipython.user_ns = _ipython.Completer.namespace = (
         AutoImporterMap(_ipython.user_ns))
+    # Tab-completion occurs in a different thread from evaluation and history
+    # saving, and the history sqlite database can only be accessed from one
+    # thread.  Thus, we need to first load the import cache using the correct
+    # (latter) thread, instead of lazily.
+    _get_import_cache(_ipython)
 
 
 if __name__ == "__main__":

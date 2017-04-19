@@ -32,7 +32,8 @@ Inspired from @OrangeFlash81's `version
 improvements:
 
 - Does not rely on re-execution, but instead hooks the user namespace; thus,
-  safe even in the presence of side effects, and works with magics too.
+  safe even in the presence of side effects, and works for tab completion and
+  magics too.
 - Learns your preferred aliases (from the history).
 - Suppresses irrelevant chained tracebacks.
 - Auto-imports submodules.
