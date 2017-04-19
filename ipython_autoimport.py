@@ -163,6 +163,10 @@ def load_ipython_extension(ipython):
     _get_import_cache(ipython)
 
 
+def unload_ipython_extension(ipython):
+    ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
+
+
 if __name__ == "__main__":
     if os.isatty(sys.stdout.fileno()):
         print("""\

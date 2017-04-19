@@ -11,13 +11,13 @@ def global_ip():
     path = Path(__file__)
     ip.run_cell("import sys; sys.path[:0] = [{!r}, {!r}]".format(
         str(path.parents[1]), str(path.parents[0])))
-    ip.run_cell("%load_ext ipython_autoimport")
     return ip
 
 
 @pytest.fixture
 def ip(global_ip):
     global_ip.run_cell("%reset -f")
+    global_ip.run_cell("%load_ext ipython_autoimport")
     yield global_ip
     with IPython.utils.io.capture_output():
         global_ip.run_cell(
@@ -58,3 +58,10 @@ def test_setattr(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("a; a.b = 42; 'b' in vars(a), a.b")
     assert captured.stdout == "Autoimport: import a\nOut[1]: (True, 42)\n"
+
+
+def test_unload(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("%unload_ext ipython_autoimport")
+        ip.run_cell("try: a\nexcept NameError: print('ok')")
+    assert captured.stdout == "ok\n"
