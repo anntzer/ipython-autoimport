@@ -19,5 +19,5 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3",
         ],
         py_modules=["ipython_autoimport"],
-        install_requires=["ipython"],
+        install_requires=["ipython>=4.0"],  # introduced `history_load_length`.
     )

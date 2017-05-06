@@ -49,8 +49,8 @@ def test_sub_submodule(ip):
 def test_no_import(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("a.not_here")
-    assert (captured.stdout.splitlines()[-1]
-            == "AttributeError: module 'a' has no attribute 'not_here'")
+    # Exact message changes between Python versions.
+    assert "has no attribute 'not_here'" in captured.stdout.splitlines()[-1]
     assert "ImportError" not in captured.stdout
 
 

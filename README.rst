@@ -1,9 +1,13 @@
 ipython-autoimport
 ==================
 
-|Python33|
+|Python33| |Travis| |CodeCov|
 
 .. |Python33| image:: https://img.shields.io/badge/python-3.3%2B-blue.svg
+.. |Travis| image:: https://travis-ci.org/anntzer/mplcursors.svg?branch=master
+   :target: https://travis-ci.org/anntzer/mplcursors
+.. |CodeCov| image:: https://codecov.io/gh/anntzer/mplcursors/master.svg
+   :target: https://codecov.io/gh/anntzer/mplcursors
 
 Automagically import missing modules in IPython: instead of
 ::
@@ -53,7 +57,7 @@ then append the output of ``python -mipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
-Run tests with ``pytest``.
+Run tests with ``pytest`` (tests requires ``pathlib`` on Python 3.3).
 
 Limitations
 -----------

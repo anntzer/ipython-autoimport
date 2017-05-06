@@ -1,0 +1,15 @@
+git:
+    depth: 1
+language: python
+cache:
+    pip: true
+matrix:
+    include:
+        - python: "3.3"
+          env: IPYTHON_VERSION='==4.0.0' EXTRA_REQS=pathlib
+        - python: "3.6" # use latest ipython (via --upgrade).
+          env: IPYTHON_VERSION=
+install:
+    - pip install --upgrade pytest pytest-cov codecov ipython"$IPYTHON_VERSION" $EXTRA_REQS .
+script: pytest --cov
+after_success: codecov
