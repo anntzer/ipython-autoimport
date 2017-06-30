@@ -4,13 +4,12 @@ ipython-autoimport
 |Python33| |Travis| |CodeCov|
 
 .. |Python33| image:: https://img.shields.io/badge/python-3.3%2B-blue.svg
-.. |Travis| image:: https://travis-ci.org/anntzer/mplcursors.svg?branch=master
-   :target: https://travis-ci.org/anntzer/mplcursors
-.. |CodeCov| image:: https://codecov.io/gh/anntzer/mplcursors/master.svg
-   :target: https://codecov.io/gh/anntzer/mplcursors
+.. |Travis| image:: https://travis-ci.org/anntzer/ipython-autoimport.svg?branch=master
+   :target: https://travis-ci.org/anntzer/ipython-autoimport
+.. |CodeCov| image:: https://codecov.io/gh/anntzer/ipython-autoimport/master.svg
+   :target: https://codecov.io/gh/anntzer/ipython-autoimport
 
-Automagically import missing modules in IPython: instead of
-::
+Automagically import missing modules in IPython: instead of ::
 
    In [1]: plt.plot([1, 2], [3, 4])
    ---------------------------------------------------------------------------
