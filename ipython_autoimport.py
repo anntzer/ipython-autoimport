@@ -5,6 +5,7 @@ to `~/.ipython/profile_default/ipython_config.py`.
 """
 
 import ast
+import builtins
 import importlib
 import os
 import sys
@@ -120,6 +121,14 @@ class AutoImporterMap(dict):
         try:
             value = super().__getitem__(name)
         except KeyError as key_error:
+            # First try to resolve through builtins, so that local directories
+            # (e.g., "bin") do not override them (by being misinterpreted as
+            # a namespace package).  In this case, we do not need to check
+            # whether we got a module.
+            try:
+                return getattr(builtins, name)
+            except AttributeError:
+                pass
             # Find single matching import, if any.
             imports = self._import_cache.get(name, {"import {}".format(name)})
             if len(imports) != 1:
