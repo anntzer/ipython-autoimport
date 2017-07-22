@@ -151,16 +151,6 @@ class AutoImporterMap(dict):
 
 
 def load_ipython_extension(ipython):
-    # We would prefer patching `user_module` (the `__main__` module) as
-    # IPython passes the `__dict__` of that module as globals -- this would be
-    # necessary to support autoimport in comprehension scopes such as `[x for x
-    # in <autoimported-module-attribute>]` (as the comprehension scope directly
-    # tries resolves into the globals).
-    #
-    # Unfortunately this seems impossible(?) as `exec` requires its `globals`
-    # argument (and only it) to be exactly a dict (and does not care about
-    # overridden methods in subclasses).
-    #
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
     ipython.user_ns = ipython.Completer.namespace = (
