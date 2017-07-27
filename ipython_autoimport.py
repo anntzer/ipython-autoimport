@@ -105,7 +105,14 @@ def _make_submodule_autoimporter_module(ipython, module):
                         ipython, submodule)
                 raise  # Raise AttributeError without chaining ImportError.
 
-    return SubmoduleAutoImporterModule(module.__name__)
+    sai_module = SubmoduleAutoImporterModule(module.__name__)
+    # Apparently, `module?` does not trigger descriptors, so we need to
+    # set the docstring explicitly (on the instance, not on the class).
+    # Then then only difference in the output of `module?` becomes the type
+    # (`SubmoduleAutoImportModule` instead of `module`), which we should keep
+    # for clarity.
+    ModuleType.__setattr__(sai_module, "__doc__", module.__doc__)
+    return sai_module
 
 
 class AutoImporterMap(dict):
