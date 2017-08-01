@@ -60,6 +60,18 @@ def test_setattr(ip):
     assert captured.stdout == "Autoimport: import a\nOut[1]: (True, 42)\n"
 
 
+def test_closure(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("x = 1; (lambda: x)()")
+    assert captured.stdout == "Out[1]: 1\n"
+
+
+def test_del(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("x = 1; del x; print('ok')")
+    assert captured.stdout == "ok\n"
+
+
 def test_unload(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("%unload_ext ipython_autoimport")

@@ -156,6 +156,17 @@ class AutoImporterMap(dict):
         else:
             return value
 
+    # Ensure that closures that attempt to resolve into globals get the right
+    # values.
+
+    def __setitem__(self, name, value):
+        super().__setitem__(name, value)
+        setattr(self._ipython.user_module, name, value)
+
+    def __delitem__(self, name):
+        super().__delitem__(name)
+        delattr(self._ipython.user_module, name)
+
 
 def load_ipython_extension(ipython):
     # `Completer.namespace` needs to be overriden too, for completion to work
