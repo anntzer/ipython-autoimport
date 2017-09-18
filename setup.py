@@ -11,13 +11,14 @@ if __name__ == "__main__":
         long_description=open("README.rst").read(),
         author="Antony Lee",
         url="https://github.com/anntzer/ipython-autoimport",
-        license="BSD",
+        license="MIT",
         classifiers=[
             "Development Status :: 4 - Beta",
             "Framework :: IPython",
-            "License :: OSI Approved :: BSD License",
+            "License :: OSI Approved :: MIT License",
             "Programming Language :: Python :: 3",
         ],
         py_modules=["ipython_autoimport"],
+        python_requires=">=3",
         install_requires=["ipython>=4.0"],  # introduced `history_load_length`.
     )
