@@ -57,3 +57,18 @@ to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
 Run tests with ``pytest`` (tests requires ``pathlib`` on Python 3.3).
+
+Limitations
+-----------
+
+Constructs such as ::
+
+   class C:
+      auto_imported_value
+
+will not work, because they are run using the class locals (rather than the
+patched locals); patching globals would not work because ``LOAD_NAME`` queries
+globals using ``PyDict_GetItem`` exactly (note that it queries locals using
+``PyObject_GetItem``; also, ``LOAD_GLOBALS`` queries *both* globals and
+builtins using ``PyObject_GetItem`` so we could possibly get away with patching
+the builtins dict instead, but that seems a bit too invasive...).
