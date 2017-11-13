@@ -14,13 +14,16 @@ from types import ModuleType
 
 from IPython.utils import PyColorize
 
+import setuptools_scm
 try:
-    import _ipython_autoimport_version
-except ImportError:
-    from pip._vendor import pkg_resources
-    __version__ = pkg_resources.get_distribution("ipython-autoimport").version
-else:
-    __version__ = _ipython_autoimport_version.get_versions()["version"]
+    __version__ = setuptools_scm.get_version(  # xref setup.py
+        root="../..", relative_to=__file__,
+        version_scheme="post-release", local_scheme="node-and-date")
+except LookupError:
+    try:
+        from _ipython_autoimport_version import version as __version__
+    except ImportError:
+        pass
 
 
 def _get_import_cache(ipython):
