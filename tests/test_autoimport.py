@@ -25,6 +25,7 @@ def ip(global_ip):
                          "if getattr(mod, '__file__', '').startswith({!r})]:\n"
             "    del sys.modules[name]"
             .format(str(Path(__file__).parent)))
+    global_ip.run_cell("%unload_ext ipython_autoimport")
 
 
 @pytest.mark.parametrize("name", ["a", "a.b", "a.b.c"])
@@ -43,7 +44,7 @@ def test_sub_submodule(ip):
     ip.run_cell("import a.b")
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("a.b.c.__name__")
-    assert (captured.stdout == "Autoimport: import a.b.c\nOut[1]: 'a.b.c'\n")
+    assert captured.stdout == "Autoimport: import a.b.c\nOut[1]: 'a.b.c'\n"
 
 
 def test_no_import(ip):
