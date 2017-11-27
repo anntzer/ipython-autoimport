@@ -1,7 +1,7 @@
 """
 Automagically import missing modules in IPython.
 
-To activate, pip-install and append the output of `python -mipython_autoimport`
+To activate, pip-install and append the output of `python -m ipython_autoimport`
 to `~/.ipython/profile_default/ipython_config.py`.
 """
 
@@ -15,6 +15,10 @@ import token
 from types import ModuleType
 
 from IPython.core import magic
+from IPython.core.error import UsageError
+from IPython.core.magic import register_line_magic
+from IPython.core.magic_arguments import (argument, magic_arguments, 
+                                          parse_argstring)
 from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
@@ -57,12 +61,20 @@ def _get_import_cache(ipython):
 
     for _, _, entry in (
             ipython.history_manager.get_tail(
-                ipython.history_load_length, raw=False)):
-        try:
-            parsed = ast.parse(entry)
-        except SyntaxError:
-            continue
-        Visitor().visit(parsed)
+                ipython.history_load_length, raw=True)):
+        if entry.startswith("%autoimport"):
+            try:
+                args = parse_argstring(autoimport, entry[len("%autoimport"):])
+                if args.clear:
+                    import_cache.pop(args.clear, None)
+            except UsageError:
+                pass
+        else:
+            try:
+                parsed = ast.parse(entry)
+            except SyntaxError:
+                continue
+            Visitor().visit(parsed)
 
     return import_cache
 
@@ -71,7 +83,10 @@ def _report(ipython, msg):
     """Output a message prepended by a colored `Autoimport:` tag."""
     # Tell prompt_toolkit to pass ANSI escapes through (PTK#187); harmless on
     # pre-PTK versions.
-    sys.stdout._raw = True
+    try:
+        sys.stdout._raw = True
+    except AttributeError:
+        pass
     cs = PyColorize.Parser().color_table[ipython.colors].colors
     # Token.NUMBER: bright blue (cyan), looks reasonable.
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
@@ -100,7 +115,8 @@ def _make_submodule_autoimporter_module(ipython, module):
             try:
                 value = getattr(module, name)
                 if isinstance(value, ModuleType):
-                    value = _make_submodule_autoimporter_module(ipython, value)
+                    value = _make_submodule_autoimporter_module(ipython,
+                                                                value)
                 return value
             except AttributeError:
                 import_target = "{}.{}".format(self.__name__, name)
@@ -132,6 +148,7 @@ class _AutoImporterMap(dict):
         super().__init__(ipython.user_ns)
         self._ipython = ipython
         self._import_cache = _get_import_cache(ipython)
+        self._imported = []
 
     def __getitem__(self, name):
         try:
@@ -150,7 +167,11 @@ class _AutoImporterMap(dict):
             if len(imports) != 1:
                 if len(imports) > 1:
                     _report(self._ipython,
-                            "multiple imports available for {!r}".format(name))
+                            "multiple imports available for {!r}:\n"
+                            "{}\n"
+                            "'%autoimport --clear {}' "
+                            "can be used to clear the cache for this symbol."
+                            .format(name, "\n".join(imports), name))
                 raise key_error
             import_source, = imports
             try:
@@ -158,6 +179,7 @@ class _AutoImporterMap(dict):
             except Exception:  # Normally, ImportError.
                 raise key_error
             else:
+                self._imported.append(import_source)
                 _report(self._ipython, import_source)
                 value = super().__getitem__(name)
         if isinstance(value, ModuleType):
@@ -214,15 +236,41 @@ def _uninstall_namespace(ipython):
     ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
 
 
+@magic_arguments()
+@argument("-c", "--clear", type=str, help="Clear cache for this symbol")
+@argument("-l", "--list", dest="list", action="store_const",
+          const=True, default=False,
+          help="Show autoimports from this session")
+def autoimport(arg):
+    ipython = get_ipython()
+    args = parse_argstring(autoimport, arg)
+
+    if args.clear:
+        if ipython.user_ns._import_cache.pop(args.clear, None):
+            _report(ipython,
+                    "cleared symbol '{}' from autoimport cache."
+                    .format(args.clear))
+        else:
+            _report(ipython, 
+                    "didn't find symbol '{}' in autoimport cache."
+                    .format(args.clear))
+
+    if args.list:
+        if ipython.user_ns._imported:
+            _report(ipython, 
+                    "the following autoimports were run:\n{}".format(
+                        "\n".join(ipython.user_ns._imported)
+                    ))
+        else:
+            _report(ipython, "no autoimports in this session yet.")
+
+
 def load_ipython_extension(ipython):
     _install_namespace(ipython)
-    # Tab-completion occurs in a different thread from evaluation and history
-    # saving, and the history sqlite database can only be accessed from one
-    # thread.  Thus, we need to first load the import cache using the correct
-    # (latter) thread, instead of lazily.
-    _get_import_cache(ipython)
     # Add warning to timing magics.
     ipython.register_magics(_PatchedMagics)
+
+    register_line_magic(autoimport)
 
 
 def unload_ipython_extension(ipython):
