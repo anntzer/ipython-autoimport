@@ -73,6 +73,31 @@ def test_del(ip):
     assert captured.stdout == "ok\n"
 
 
+def test_list(ip):
+    ip.run_cell("os")
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("%autoimport -l")
+    assert (captured.stdout == 
+            "Autoimport: the following autoimports were run:\nimport os\n")
+
+
+def test_no_list(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("%autoimport -l")
+    assert (captured.stdout == 
+            "Autoimport: no autoimports in this session yet.\n")
+
+
+def test_noclear(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("%autoimport -c ipython_autoimport_test_noclear")
+    assert (
+        captured.stdout ==
+        "Autoimport: didn't find symbol "
+        "'ipython_autoimport_test_noclear' in autoimport cache.\n"
+    )
+
+
 def test_unload(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("%unload_ext ipython_autoimport")

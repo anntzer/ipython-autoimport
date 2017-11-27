@@ -45,6 +45,10 @@ improvements:
 - Auto-imports submodules.
 - ``pip``-installable.
 
+To see auto imports from the current session: ``%autoimport -l``
+
+To clear the cache for a symbol with multiple possible imports: ``%autoimport -c SYMBOL``
+
 Installation
 ------------
 
@@ -55,9 +59,11 @@ As usual, install using pip:
    $ pip install ipython-autoimport  # from PyPI
    $ pip install git+https://github.com/anntzer/ipython-autoimport  # from Github
 
-Then, append the output of ``python -mipython_autoimport`` to the
+Then, append the output of ``python -m ipython_autoimport`` to the
 ``ipython_config.py`` file in the directory printed by ``ipython profile
 locate`` (typically ``~/.ipython/profile_default/``).
+
+If you don't have such a file at all, you can use ``ipython profile create``.
 
 Run tests with ``pytest``.
 
