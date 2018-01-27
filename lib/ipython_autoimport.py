@@ -12,6 +12,8 @@ import sys
 import token
 from types import ModuleType
 
+from IPython.core import magic
+from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
 import setuptools_scm
@@ -171,6 +173,37 @@ class AutoImporterMap(dict):
         delattr(self._ipython.user_module, name)
 
 
+def _print_warning():
+    print("Warning:  The ipython_autoimport extension is active and may skew "
+          "timing results.  You likely want to unload it using '%unload_ext "
+          "ipython_autoimport'.")
+
+
+@magic.magics_class
+class PatchedMagics(magic.Magics):
+    @magic.line_cell_magic
+    def time(self, line, cell=None):
+        _print_warning()
+        ExecutionMagics.time(self, line, cell)
+
+    @magic.line_cell_magic
+    def timeit(self, line, cell=None):
+        _print_warning()
+        ExecutionMagics.timeit(self, line, cell)
+
+    @magic.line_cell_magic
+    def prun(self, line, cell=None):
+        _print_warning()
+        ExecutionMagics.prun(self, line, cell)
+
+
+@magic.magics_class
+class UnpatchedMagics(magic.Magics):
+    time = magic.line_cell_magic(ExecutionMagics.time)
+    timeit = magic.line_cell_magic(ExecutionMagics.timeit)
+    prun = magic.line_cell_magic(ExecutionMagics.prun)
+
+
 def load_ipython_extension(ipython):
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
@@ -181,10 +214,14 @@ def load_ipython_extension(ipython):
     # thread.  Thus, we need to first load the import cache using the correct
     # (latter) thread, instead of lazily.
     _get_import_cache(ipython)
+    # Add warning to timing magics.
+    ipython.register_magics(PatchedMagics)
 
 
 def unload_ipython_extension(ipython):
     ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
+    # Unpatch timing magics.
+    ipython.register_magics(UnpatchedMagics)
 
 
 if __name__ == "__main__":
