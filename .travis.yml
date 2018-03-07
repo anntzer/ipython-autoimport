@@ -10,7 +10,6 @@ matrix:
         - python: "3.6" # use latest ipython (via --upgrade).
           env: IPYTHON_VERSION=
 install:
-    - pip install --upgrade setuptools
     - pip install --upgrade pytest pytest-cov codecov ipython"$IPYTHON_VERSION" $EXTRA_REQS .
 script: pytest --cov
 after_success: codecov
