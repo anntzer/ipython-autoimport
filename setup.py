@@ -25,6 +25,5 @@ setup(
     },
     install_requires=[
         "ipython>=4.0",  # introduced `history_load_length`.
-        "setuptools_scm",
     ],
 )

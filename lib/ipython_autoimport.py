@@ -16,12 +16,12 @@ from IPython.core import magic
 from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
-import setuptools_scm
 try:
+    import setuptools_scm
     __version__ = setuptools_scm.get_version(  # xref setup.py
         root="../..", relative_to=__file__,
         version_scheme="post-release", local_scheme="node-and-date")
-except LookupError:
+except (ImportError, LookupError):
     try:
         from _ipython_autoimport_version import version as __version__
     except ImportError:
