@@ -2,6 +2,7 @@
 *.egg-info/
 .cache/
 .eggs/
+.pytest_cache/
 build/
 dist/
 htmlcov/
