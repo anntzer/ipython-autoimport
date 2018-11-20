@@ -1,9 +1,11 @@
 ipython-autoimport
 ==================
 
-|Python33| |Travis| |CodeCov|
+|Python33| |PyPI| |Travis| |CodeCov|
 
 .. |Python33| image:: https://img.shields.io/badge/python-3.3%2B-blue.svg
+.. |PyPI| image:: https://img.shields.io/pypi/v/ipython-autoimport.svg
+   :target: https://pypi.python.org/pypi/ipython-autoimport
 .. |Travis| image:: https://travis-ci.org/anntzer/ipython-autoimport.svg?branch=master
    :target: https://travis-ci.org/anntzer/ipython-autoimport
 .. |CodeCov| image:: https://codecov.io/gh/anntzer/ipython-autoimport/master.svg
@@ -45,14 +47,14 @@ improvements:
 Installation
 ------------
 
-Pick one among:
+As usual, install using pip:
 
 .. code-block:: sh
 
    $ pip install ipython-autoimport  # from PyPI
    $ pip install git+https://github.com/anntzer/ipython-autoimport  # from Github
 
-then append the output of ``python -mipython_autoimport``
+Then, append the output of ``python -mipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
