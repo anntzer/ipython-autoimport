@@ -16,7 +16,7 @@ setup(
     ],
     py_modules=["ipython_autoimport"],
     package_dir={"": "lib"},
-    python_requires=">=3",
+    python_requires=">=3.4",
     setup_requires=["setuptools_scm"],
     use_scm_version=lambda: {
         "version_scheme": "post-release",
@@ -24,6 +24,6 @@ setup(
         "write_to": "lib/_ipython_autoimport_version.py",
     },
     install_requires=[
-        "ipython>=4.0",  # introduced `history_load_length`.
+        "ipython>=4.1",  # IPython#8985 is needed for tests to pass(?).
     ],
 )
