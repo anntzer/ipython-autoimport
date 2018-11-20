@@ -102,7 +102,8 @@ def _make_submodule_autoimporter_module(ipython, module):
                 import_target = "{}.{}".format(self.__name__, name)
                 try:
                     submodule = importlib.import_module(import_target)
-                except Exception:
+                except getattr(builtins, "ModuleNotFoundError",
+                               ImportError):  # Py<3.6.
                     pass
                 else:
                     _report(ipython, "import {}".format(import_target))
