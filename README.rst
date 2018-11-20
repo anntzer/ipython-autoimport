@@ -1,9 +1,9 @@
 ipython-autoimport
 ==================
 
-|Python33| |PyPI| |Travis| |CodeCov|
+|Python34| |PyPI| |Travis| |CodeCov|
 
-.. |Python33| image:: https://img.shields.io/badge/python-3.3%2B-blue.svg
+.. |Python34| image:: https://img.shields.io/badge/python-3.4%2B-blue.svg
 .. |PyPI| image:: https://img.shields.io/pypi/v/ipython-autoimport.svg
    :target: https://pypi.python.org/pypi/ipython-autoimport
 .. |Travis| image:: https://travis-ci.org/anntzer/ipython-autoimport.svg?branch=master
@@ -58,7 +58,7 @@ Then, append the output of ``python -mipython_autoimport``
 to the output of ``ipython profile locate`` (typically
 ``~/.ipython/profile_default/ipython_config.py``).
 
-Run tests with ``pytest`` (tests requires ``pathlib`` on Python 3.3).
+Run tests with ``pytest``.
 
 Limitations
 -----------
