@@ -74,3 +74,9 @@ globals using ``PyDict_GetItem`` exactly (note that it queries locals using
 ``PyObject_GetItem``; also, ``LOAD_GLOBALS`` queries *both* globals and
 builtins using ``PyObject_GetItem`` so we could possibly get away with patching
 the builtins dict instead, but that seems a bit too invasive...).
+
+When using Jedi autocompletion (the default if Jedi is installed as of IPython
+7.2), trying to tab-complete not-yet-imported global names to trigger an import
+fails, because Jedi purposefully converts the global dict to a namespace
+object and looks up attributes using ``getattr_static``.  Jedi can be disabled
+by adding ``c.Completer.use_jedi = False`` to the ``ipython_config.py`` file.
