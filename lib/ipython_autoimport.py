@@ -1,4 +1,5 @@
-"""Automagically import missing modules in IPython.
+"""
+Automagically import missing modules in IPython.
 
 To activate, pip-install and append the output of `python -mipython_autoimport`
 to `~/.ipython/profile_default/ipython_config.py`.
@@ -29,7 +30,8 @@ except (ImportError, LookupError):
 
 
 def _get_import_cache(ipython):
-    """Load a mapping of names to import statements from the IPython history.
+    """
+    Load a mapping of names to import statements from the IPython history.
     """
 
     import_cache = {}
@@ -64,8 +66,7 @@ def _get_import_cache(ipython):
 
 
 def _report(ipython, msg):
-    """Output a message prepended by a colored `Autoimport:` tag.
-    """
+    """Output a message prepended by a colored `Autoimport:` tag."""
     # Tell prompt_toolkit to pass ANSI escapes through (PTK#187); harmless on
     # pre-PTK versions.
     sys.stdout._raw = True
@@ -75,7 +76,8 @@ def _report(ipython, msg):
 
 
 def _make_submodule_autoimporter_module(ipython, module):
-    """Return a module sub-instance that automatically imports submodules.
+    """
+    Return a module sub-instance that automatically imports submodules.
 
     Implemented as a factory function to close over the real module.
     """
@@ -121,9 +123,8 @@ def _make_submodule_autoimporter_module(ipython, module):
     return sai_module
 
 
-class AutoImporterMap(dict):
-    """Mapping that attempts to resolve missing keys through imports.
-    """
+class _AutoImporterMap(dict):
+    """Mapping that attempts to resolve missing keys through imports."""
 
     def __init__(self, ipython):
         super().__init__(ipython.user_ns)
@@ -181,7 +182,7 @@ def _print_warning():
 
 
 @magic.magics_class
-class PatchedMagics(magic.Magics):
+class _PatchedMagics(magic.Magics):
     @magic.line_cell_magic
     def time(self, line, cell=None):
         _print_warning()
@@ -199,7 +200,7 @@ class PatchedMagics(magic.Magics):
 
 
 @magic.magics_class
-class UnpatchedMagics(magic.Magics):
+class _UnpatchedMagics(magic.Magics):
     time = magic.line_cell_magic(ExecutionMagics.time)
     timeit = magic.line_cell_magic(ExecutionMagics.timeit)
     prun = magic.line_cell_magic(ExecutionMagics.prun)
@@ -209,20 +210,20 @@ def load_ipython_extension(ipython):
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
     ipython.user_ns = ipython.Completer.namespace = (
-        AutoImporterMap(ipython))
+        _AutoImporterMap(ipython))
     # Tab-completion occurs in a different thread from evaluation and history
     # saving, and the history sqlite database can only be accessed from one
     # thread.  Thus, we need to first load the import cache using the correct
     # (latter) thread, instead of lazily.
     _get_import_cache(ipython)
     # Add warning to timing magics.
-    ipython.register_magics(PatchedMagics)
+    ipython.register_magics(_PatchedMagics)
 
 
 def unload_ipython_extension(ipython):
     ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
     # Unpatch timing magics.
-    ipython.register_magics(UnpatchedMagics)
+    ipython.register_magics(_UnpatchedMagics)
 
 
 if __name__ == "__main__":

@@ -54,9 +54,9 @@ As usual, install using pip:
    $ pip install ipython-autoimport  # from PyPI
    $ pip install git+https://github.com/anntzer/ipython-autoimport  # from Github
 
-Then, append the output of ``python -mipython_autoimport``
-to the output of ``ipython profile locate`` (typically
-``~/.ipython/profile_default/ipython_config.py``).
+Then, append the output of ``python -mipython_autoimport`` to the
+``ipython_config.py`` file in the directory printed by ``ipython profile
+locate`` (typically ``~/.ipython/profile_default/``).
 
 Run tests with ``pytest``.
 
