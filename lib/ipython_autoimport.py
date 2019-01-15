@@ -175,28 +175,31 @@ class _AutoImporterMap(dict):
         delattr(self._ipython.user_module, name)
 
 
-def _print_warning():
-    print("Warning:  The ipython_autoimport extension is active and may skew "
-          "timing results.  You likely want to unload it using '%unload_ext "
-          "ipython_autoimport'.")
-
-
 @magic.magics_class
 class _PatchedMagics(magic.Magics):
     @magic.line_cell_magic
     def time(self, line, cell=None):
-        _print_warning()
-        ExecutionMagics.time(self, line, cell)
+        _uninstall_namespace(self.shell)
+        try:
+            ExecutionMagics.time(self, line, cell)
+        finally:
+            _install_namespace(self.shell)
 
     @magic.line_cell_magic
     def timeit(self, line, cell=None):
-        _print_warning()
-        ExecutionMagics.timeit(self, line, cell)
+        _uninstall_namespace(self.shell)
+        try:
+            ExecutionMagics.timeit(self, line, cell)
+        finally:
+            _install_namespace(self.shell)
 
     @magic.line_cell_magic
     def prun(self, line, cell=None):
-        _print_warning()
-        ExecutionMagics.prun(self, line, cell)
+        _uninstall_namespace(self.shell)
+        try:
+            ExecutionMagics.prun(self, line, cell)
+        finally:
+            _install_namespace(self.shell)
 
 
 @magic.magics_class
@@ -206,11 +209,19 @@ class _UnpatchedMagics(magic.Magics):
     prun = magic.line_cell_magic(ExecutionMagics.prun)
 
 
-def load_ipython_extension(ipython):
+def _install_namespace(ipython):
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
     ipython.user_ns = ipython.Completer.namespace = (
         _AutoImporterMap(ipython))
+
+
+def _uninstall_namespace(ipython):
+    ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
+
+
+def load_ipython_extension(ipython):
+    _install_namespace(ipython)
     # Tab-completion occurs in a different thread from evaluation and history
     # saving, and the history sqlite database can only be accessed from one
     # thread.  Thus, we need to first load the import cache using the correct
@@ -221,7 +232,7 @@ def load_ipython_extension(ipython):
 
 
 def unload_ipython_extension(ipython):
-    ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
+    _uninstall_namespace(ipython)
     # Unpatch timing magics.
     ipython.register_magics(_UnpatchedMagics)
 
