@@ -39,7 +39,9 @@ improvements:
 - Does not rely on re-execution, but instead hooks the user namespace; thus,
   safe even in the presence of side effects, and works for tab completion and
   magics too.
-- Learns your preferred aliases (from the history).
+- Learns your preferred aliases from the history -- ``plt`` is not hardcoded to
+  alias ``matplotlib.pyplot``, just found because you previously imported
+  ``pyplot`` under this alias.
 - Suppresses irrelevant chained tracebacks.
 - Auto-imports submodules.
 - ``pip``-installable.
