@@ -1,9 +1,8 @@
 ipython-autoimport
 ==================
 
-|Python34| |PyPI| |Travis| |CodeCov|
+|PyPI| |Travis| |CodeCov|
 
-.. |Python34| image:: https://img.shields.io/badge/python-3.4%2B-blue.svg
 .. |PyPI| image:: https://img.shields.io/pypi/v/ipython-autoimport.svg
    :target: https://pypi.python.org/pypi/ipython-autoimport
 .. |Travis| image:: https://travis-ci.org/anntzer/ipython-autoimport.svg?branch=master
