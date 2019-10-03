@@ -7,6 +7,7 @@ to `~/.ipython/profile_default/ipython_config.py`.
 
 import ast
 import builtins
+import functools
 import importlib
 import os
 import sys
@@ -175,31 +176,23 @@ class _AutoImporterMap(dict):
         delattr(self._ipython.user_module, name)
 
 
+def _patch_magic(func):
+    @functools.wraps(func)
+    def magic(self, *args, **kwargs):
+        _uninstall_namespace(self.shell)
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            _install_namespace(self.shell)
+
+    return magic
+
+
 @magic.magics_class
 class _PatchedMagics(magic.Magics):
-    @magic.line_cell_magic
-    def time(self, line, cell=None):
-        _uninstall_namespace(self.shell)
-        try:
-            ExecutionMagics.time(self, line, cell)
-        finally:
-            _install_namespace(self.shell)
-
-    @magic.line_cell_magic
-    def timeit(self, line, cell=None):
-        _uninstall_namespace(self.shell)
-        try:
-            ExecutionMagics.timeit(self, line, cell)
-        finally:
-            _install_namespace(self.shell)
-
-    @magic.line_cell_magic
-    def prun(self, line, cell=None):
-        _uninstall_namespace(self.shell)
-        try:
-            ExecutionMagics.prun(self, line, cell)
-        finally:
-            _install_namespace(self.shell)
+    time = magic.line_cell_magic(_patch_magic(ExecutionMagics.time))
+    timeit = magic.line_cell_magic(_patch_magic(ExecutionMagics.timeit))
+    prun = magic.line_cell_magic(_patch_magic(ExecutionMagics.prun))
 
 
 @magic.magics_class
