@@ -19,15 +19,16 @@ from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
 try:
-    import setuptools_scm
-    __version__ = setuptools_scm.get_version(  # xref setup.py
-        root="../..", relative_to=__file__,
-        version_scheme="post-release", local_scheme="node-and-date")
-except (ImportError, LookupError):
+    import importlib.metadata as importlib_metadata
+except ImportError:
     try:
-        from _ipython_autoimport_version import version as __version__
+        import importlib_metadata
     except ImportError:
-        pass
+        importlib_metadata = None
+try:
+    __version__ = importlib_metadata.version("ipython-autoimport")
+except (AttributeError, ImportError):  # AttrError if i_m is missing.
+    __version__ = "(unknown version)"
 
 
 def _get_import_cache(ipython):

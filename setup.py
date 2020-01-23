@@ -21,9 +21,9 @@ setup(
     use_scm_version=lambda: {
         "version_scheme": "post-release",
         "local_scheme": "node-and-date",
-        "write_to": "lib/_ipython_autoimport_version.py",
     },
     install_requires=[
         "ipython>=4.1",  # IPython#8985 is needed for tests to pass(?).
+        "importlib_metadata; python_version<'3.8'",
     ],
 )
