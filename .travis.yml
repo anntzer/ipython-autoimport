@@ -9,7 +9,7 @@ matrix:
   include:
   - python: "3.4"
     env: IPYTHON_VERSION='==4.1.0'
-  - python: "3.7"
+  - python: "3.8"
     env: IPYTHON_VERSION=
 install: |
   pip install --upgrade pip setuptools
