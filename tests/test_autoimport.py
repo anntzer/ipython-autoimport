@@ -21,9 +21,9 @@ def ip(global_ip):
     yield global_ip
     with IPython.utils.io.capture_output():
         global_ip.run_cell(
-            "for name in [name for name, mod in sys.modules.items() "
-                         "if getattr(mod, '__file__', '').startswith({!r})]:\n"
-            "    del sys.modules[name]"
+            "for name, mod in list(sys.modules.items()):\n"
+            "    if getattr(mod, '__file__', '').startswith({!r}):\n"
+            "        del sys.modules[name]"
             .format(str(Path(__file__).parent)))
     global_ip.run_cell("%unload_ext ipython_autoimport")
 
