@@ -16,7 +16,7 @@ from types import ModuleType
 
 from IPython.core import magic
 from IPython.core.error import UsageError
-from IPython.core.magic import register_line_magic
+from IPython.core.magic import register_line_magic, register_cell_magic
 from IPython.core.magic_arguments import (argument, magic_arguments, 
                                           parse_argstring)
 from IPython.core.magics.execution import ExecutionMagics
@@ -199,30 +199,16 @@ class _AutoImporterMap(dict):
         delattr(self._ipython.user_module, name)
 
 
-def _patch_magic(func):
+def _patch_magic(shell, func):
     @functools.wraps(func)
     def magic(self, *args, **kwargs):
-        _uninstall_namespace(self.shell)
+        _uninstall_namespace(shell)
         try:
             return func(self, *args, **kwargs)
         finally:
-            _install_namespace(self.shell)
+            _install_namespace(shell)
 
     return magic
-
-
-@magic.magics_class
-class _PatchedMagics(magic.Magics):
-    time = magic.line_cell_magic(_patch_magic(ExecutionMagics.time))
-    timeit = magic.line_cell_magic(_patch_magic(ExecutionMagics.timeit))
-    prun = magic.line_cell_magic(_patch_magic(ExecutionMagics.prun))
-
-
-@magic.magics_class
-class _UnpatchedMagics(magic.Magics):
-    time = magic.line_cell_magic(ExecutionMagics.time)
-    timeit = magic.line_cell_magic(ExecutionMagics.timeit)
-    prun = magic.line_cell_magic(ExecutionMagics.prun)
 
 
 def _install_namespace(ipython):
@@ -267,16 +253,36 @@ def autoimport(arg):
 
 def load_ipython_extension(ipython):
     _install_namespace(ipython)
-    # Add warning to timing magics.
-    ipython.register_magics(_PatchedMagics)
+    # ipython.register_magics(_PatchedMagics)
+    type_registers = (("line", register_line_magic),
+                      ("cell", register_cell_magic))
+    for type_, register in type_registers:
+        magics_dict = ipython.magics_manager.magics[type_]
+        for magic in ("time", "timeit", "prun"):
+            current = magics_dict.get(magic)
+            if current is not None:
+                patched = _patch_magic(ipython, current)
+                patched._original_func = current
+                register(patched)
+                
 
     register_line_magic(autoimport)
 
 
 def unload_ipython_extension(ipython):
     _uninstall_namespace(ipython)
-    # Unpatch timing magics.
-    ipython.register_magics(_UnpatchedMagics)
+    # ipython.register_magics(_UnpatchedMagics)
+    type_registers = (("line", register_line_magic),
+                      ("cell", register_cell_magic))
+    for type_, register in type_registers:
+        magics_dict = ipython.magics_manager.magics[type_]
+        for magic in ("time", "timeit", "prun"):
+            current = magics_dict.get(magic)
+            if current is not None:
+                try:
+                    magics_dict[magic] = current._original_func
+                except AttributeError:
+                    continue
 
 
 if __name__ == "__main__":
