@@ -212,14 +212,14 @@ def _patch_magic(func):
 
 
 @magic.magics_class
-class _PatchedMagics(magic.Magics):
+class _PatchedMagics(ExecutionMagics):
     time = magic.line_cell_magic(_patch_magic(ExecutionMagics.time))
     timeit = magic.line_cell_magic(_patch_magic(ExecutionMagics.timeit))
     prun = magic.line_cell_magic(_patch_magic(ExecutionMagics.prun))
 
 
 @magic.magics_class
-class _UnpatchedMagics(magic.Magics):
+class _UnpatchedMagics(ExecutionMagics):
     time = magic.line_cell_magic(ExecutionMagics.time)
     timeit = magic.line_cell_magic(ExecutionMagics.timeit)
     prun = magic.line_cell_magic(ExecutionMagics.prun)
