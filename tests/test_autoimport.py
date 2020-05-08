@@ -98,6 +98,19 @@ def test_noclear(ip):
     )
 
 
+@pytest.mark.parametrize("magic", ["time", "timeit -n 1 -r 1", "prun"])
+def test_magics(ip, magic):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("{} x = 1".format(magic))
+    assert "error" not in captured.stdout.lower()
+
+
+def test_no_autoimport_in_time(ip):
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("%time type(get_ipython().user_ns)")
+    assert "autoimport" not in captured.stdout.lower()
+
+
 def test_unload(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("%unload_ext ipython_autoimport")
