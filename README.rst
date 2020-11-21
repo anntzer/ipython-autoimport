@@ -1,14 +1,17 @@
 ipython-autoimport
 ==================
 
-|PyPI| |Travis| |CodeCov|
+| |GitHub| |PyPI| |Build|
 
-.. |PyPI| image:: https://img.shields.io/pypi/v/ipython-autoimport.svg
+.. |GitHub|
+   image:: https://img.shields.io/badge/github-anntzer%2Fdefopt-brightgreen
+   :target: https://github.com/anntzer/ipython-autoimport
+.. |PyPI|
+   image:: https://img.shields.io/pypi/v/ipython-autoimport.svg?color=brightgreen
    :target: https://pypi.python.org/pypi/ipython-autoimport
-.. |Travis| image:: https://travis-ci.org/anntzer/ipython-autoimport.svg?branch=master
-   :target: https://travis-ci.org/anntzer/ipython-autoimport
-.. |CodeCov| image:: https://codecov.io/gh/anntzer/ipython-autoimport/master.svg
-   :target: https://codecov.io/gh/anntzer/ipython-autoimport
+.. |Build|
+   image:: https://img.shields.io/github/workflow/status/anntzer/ipython-autoimport/build
+   :target: https://github.com/anntzer/ipython-autoimport/actions
 
 Automagically import missing modules in IPython: instead of ::
 

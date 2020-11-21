@@ -1,0 +1,31 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -mpip install --upgrade pip wheel pytest pytest-cov
+        case '${{ matrix.python-version }}' in
+        3.6)
+          pip install ipython==4.1.0;;
+        3.9)
+          ;;
+        *)
+          exit 1;;
+        esac
+        python -mpip install .
+    - name: Test
+      run: |
+        python -mpytest --cov --cov-branch
+        python -mcoverage report --show-missing

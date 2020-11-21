@@ -16,7 +16,7 @@ setup(
     ],
     py_modules=["ipython_autoimport"],
     package_dir={"": "lib"},
-    python_requires=">=3.4",
+    python_requires=">=3.6",
     setup_requires=["setuptools_scm"],
     use_scm_version=lambda: {
         "version_scheme": "post-release",
