@@ -22,6 +22,11 @@ setup(
         "version_scheme": "post-release",
         "local_scheme": "node-and-date",
     },
+    entry_points={
+        "console_scripts": [ 
+            "ipython_autoimport=ipython_autoimport:main"
+        ]
+    },
     install_requires=[
         "ipython>=4.1",  # IPython#8985 is needed for tests to pass(?).
         "importlib_metadata; python_version<'3.8'",

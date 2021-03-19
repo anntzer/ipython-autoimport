@@ -278,8 +278,7 @@ def unload_ipython_extension(ipython):
     # Unpatch timing magics.
     ipython.register_magics(_UnpatchedMagics)
 
-
-if __name__ == "__main__":
+def main():
     if os.isatty(sys.stdout.fileno()):
         print("""\
 # Please append the output of this command to the
@@ -289,3 +288,7 @@ if __name__ == "__main__":
     print("""\
 c.InteractiveShellApp.exec_lines.append(
     "try:\\n    %load_ext ipython_autoimport\\nexcept ImportError: pass")""")
+
+
+if __name__ == "__main__":
+    main()
