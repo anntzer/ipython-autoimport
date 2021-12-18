@@ -27,5 +27,28 @@ jobs:
         python -mpip install .
     - name: Test
       run: |
-        python -mpytest --cov --cov-branch
+        pyver="$(python -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')" &&
+        COVERAGE_FILE=".coverage.$pyver" python -mpytest --cov --cov-branch
+    - name: Upload coverage
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: .coverage.*
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+    - name: Download coverage
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage
+    - name: Coverage
+      run: |
+        python -mpip install --upgrade coverage &&
+        python -mcoverage combine .coverage.* &&  # Unifies paths across envs.
         python -mcoverage report --show-missing
