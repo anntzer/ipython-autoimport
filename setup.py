@@ -5,6 +5,7 @@ setup(
     name="ipython-autoimport",
     description="Automagically import missing modules in IPython.",
     long_description=open("README.rst", encoding="utf-8").read(),
+    long_description_content_type="text/x-rst",
     author="Antony Lee",
     url="https://github.com/anntzer/ipython-autoimport",
     license="MIT",
