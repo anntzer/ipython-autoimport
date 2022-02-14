@@ -71,7 +71,7 @@ Note that upon loading, ``ipython_autoimport`` will register its submodule
 auto-importer to IPython's "limited evalutation" completer policy (on IPython
 versions that support it).
 
-Run tests with ``pytest``.
+Run tests with ``unittest`` (or ``pytest``).
 
 Limitations
 -----------

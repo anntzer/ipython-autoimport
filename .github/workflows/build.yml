@@ -16,7 +16,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install
       run: |
-        python -mpip install --upgrade pip setuptools wheel pytest pytest-cov
+        python -mpip install --upgrade pip setuptools wheel coverage
         case '${{ matrix.python-version }}' in
         3.6)
           pip install ipython==4.1.0;;
@@ -25,7 +25,7 @@ jobs:
     - name: Test
       run: |
         pyver="$(python -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')" &&
-        COVERAGE_FILE=".coverage.$pyver" python -mpytest --cov --cov-branch
+        COVERAGE_FILE=".coverage.$pyver" python -mcoverage run --append --module unittest --buffer tests/test_autoimport.py
     - name: Upload coverage
       uses: actions/upload-artifact@v3
       with:
