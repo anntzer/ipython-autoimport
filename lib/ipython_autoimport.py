@@ -1,8 +1,9 @@
 """
 Automagically import missing modules in IPython.
 
-To activate, pip-install and append the output of `python -m ipython_autoimport`
-to `~/.ipython/profile_default/ipython_config.py`.
+To activate, append the output of ``python -m ipython_autoimport`` to the
+``ipython_config.py`` file in the directory printed by ``ipython profile
+locate`` (typically ``~/.ipython/profile_default/``).
 """
 
 import ast
@@ -17,8 +18,8 @@ from types import ModuleType
 from IPython.core import magic
 from IPython.core.error import UsageError
 from IPython.core.magic import register_line_magic
-from IPython.core.magic_arguments import (argument, magic_arguments, 
-                                          parse_argstring)
+from IPython.core.magic_arguments import (
+    argument, magic_arguments, parse_argstring)
 from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
@@ -248,35 +249,29 @@ def autoimport(arg):
     if args.clear:
         if ipython.user_ns._import_cache.pop(args.clear, None):
             _report(ipython,
-                    "cleared symbol '{}' from autoimport cache."
-                    .format(args.clear))
+                    f"cleared symbol {args.clear!r} from autoimport cache.")
         else:
-            _report(ipython, 
-                    "didn't find symbol '{}' in autoimport cache."
-                    .format(args.clear))
+            _report(ipython,
+                    f"didn't find symbol {args.clear!r} in autoimport cache.")
 
     if args.list:
         if ipython.user_ns._imported:
-            _report(ipython, 
+            _report(ipython,
                     "the following autoimports were run:\n{}".format(
-                        "\n".join(ipython.user_ns._imported)
-                    ))
+                        "\n".join(ipython.user_ns._imported)))
         else:
             _report(ipython, "no autoimports in this session yet.")
 
 
 def load_ipython_extension(ipython):
     _install_namespace(ipython)
-    # Add warning to timing magics.
-    ipython.register_magics(_PatchedMagics)
-
+    ipython.register_magics(_PatchedMagics)  # Add warning to timing magics.
     register_line_magic(autoimport)
 
 
 def unload_ipython_extension(ipython):
     _uninstall_namespace(ipython)
-    # Unpatch timing magics.
-    ipython.register_magics(_UnpatchedMagics)
+    ipython.register_magics(_UnpatchedMagics)  # Unpatch timing magics.
 
 
 if __name__ == "__main__":

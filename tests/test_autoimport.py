@@ -1,7 +1,9 @@
 from pathlib import Path
+import tokenize
 
 import IPython.utils.io
 import IPython.testing.globalipapp
+import ipython_autoimport
 import pytest
 
 
@@ -116,3 +118,20 @@ def test_unload(ip):
         ip.run_cell("%unload_ext ipython_autoimport")
         ip.run_cell("try: a\nexcept NameError: print('ok')")
     assert captured.stdout == "ok\n"
+
+
+class TestStyle:
+    def _iter_stripped_lines(self):
+        for path in [ipython_autoimport.__file__, __file__]:
+            with tokenize.open(path) as src:
+                for i, line in enumerate(src, 1):
+                    yield "{}:{}".format(path, i), line.rstrip("\n")
+
+    def test_line_length(self):
+        for name, line in self._iter_stripped_lines():
+            assert len(line) <= 79, f"{name} is too long"
+
+    def test_trailing_whitespace(self):
+        for name, line in self._iter_stripped_lines():
+            assert not (line and line[-1].isspace()), \
+                f"{name} has trailing whitespace"
