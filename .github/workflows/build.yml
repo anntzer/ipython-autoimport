@@ -6,23 +6,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.6", "3.10"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install
       run: |
-        python -mpip install --upgrade pip wheel pytest pytest-cov
+        python -mpip install --upgrade pip setuptools wheel pytest pytest-cov
         case '${{ matrix.python-version }}' in
         3.6)
           pip install ipython==4.1.0;;
-        3.10)
-          ;;
-        *)
-          exit 1;;
         esac
         python -mpip install .
     - name: Test
@@ -30,7 +27,7 @@ jobs:
         pyver="$(python -c 'import sys; print("{0.major}.{0.minor}".format(sys.version_info))')" &&
         COVERAGE_FILE=".coverage.$pyver" python -mpytest --cov --cov-branch
     - name: Upload coverage
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: coverage
         path: .coverage.*
@@ -39,12 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: "3.11"
     - name: Download coverage
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage
     - name: Coverage
