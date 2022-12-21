@@ -10,7 +10,7 @@ ipython-autoimport
    image:: https://img.shields.io/pypi/v/ipython-autoimport.svg?color=brightgreen
    :target: https://pypi.python.org/pypi/ipython-autoimport
 .. |Build|
-   image:: https://img.shields.io/github/workflow/status/anntzer/ipython-autoimport/build
+   image:: https://img.shields.io/github/actions/workflow/status/anntzer/ipython-autoimport/build.yml?branch=main
    :target: https://github.com/anntzer/ipython-autoimport/actions
 
 Automagically import missing modules in IPython: instead of ::
