@@ -64,9 +64,12 @@ As usual, install using pip:
 
 Then, append the output of ``python -m ipython_autoimport`` to the
 ``ipython_config.py`` file in the directory printed by ``ipython profile
-locate`` (typically ``~/.ipython/profile_default/``).
+locate`` (typically ``~/.ipython/profile_default/``).  If you don't have such a
+file at all, first create it with ``ipython profile create``.
 
-If you don't have such a file at all, you can use ``ipython profile create``.
+Note that upon loading, ``ipython_autoimport`` will register its submodule
+auto-importer to IPython's "limited evalutation" completer policy (on IPython
+versions that support it).
 
 Run tests with ``pytest``.
 
@@ -87,6 +90,6 @@ the builtins dict instead, but that seems a bit too invasive...).
 
 When using Jedi autocompletion (the default if Jedi is installed as of IPython
 7.2), trying to tab-complete not-yet-imported global names to trigger an import
-fails, because Jedi purposefully converts the global dict to a namespace
+failure, because Jedi purposefully converts the global dict to a namespace
 object and looks up attributes using ``getattr_static``.  Jedi can be disabled
 by adding ``c.Completer.use_jedi = False`` to the ``ipython_config.py`` file.

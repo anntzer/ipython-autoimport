@@ -15,9 +15,9 @@ import sys
 import token
 from types import ModuleType
 
+import IPython.core
 from IPython.core import magic
 from IPython.core.error import UsageError
-from IPython.core.magic import register_line_magic
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring)
 from IPython.core.magics.execution import ExecutionMagics
@@ -93,53 +93,54 @@ def _report(ipython, msg):
     print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
+class _SubmoduleAutoImporterModule(ModuleType):
+    # __module and __ipython are set externally to not modify the constructor.
+
+    @property
+    def __dict__(self):
+        return self.__module.__dict__
+
+    # Overriding __setattr__ is needed even when __dict__ is overridden.
+    def __setattr__(self, name, value):
+        setattr(self.__module, name, value)
+
+    def __getattr__(self, name):
+        try:
+            value = getattr(self.__module, name)
+            if isinstance(value, ModuleType):
+                value = _make_submodule_autoimporter_module(
+                    self.__ipython, value)
+            return value
+        except AttributeError:
+            import_target = "{}.{}".format(self.__name__, name)
+            try:
+                submodule = importlib.import_module(import_target)
+            except getattr(builtins, "ModuleNotFoundError", ImportError):
+                pass  # Py<3.6.
+            else:
+                _report(self.__ipython, "import {}".format(import_target))
+                return _make_submodule_autoimporter_module(
+                    self.__ipython, submodule)
+            raise  # Raise AttributeError without chaining ImportError.
+
+
 def _make_submodule_autoimporter_module(ipython, module):
-    """
-    Return a module sub-instance that automatically imports submodules.
-
-    Implemented as a factory function to close over the real module.
-    """
-
+    """Return a module sub-instance that automatically imports submodules."""
     if not hasattr(module, "__path__"):  # We only need to wrap packages.
         return module
-
-    class SubmoduleAutoImporterModule(ModuleType):
-        @property
-        def __dict__(self):
-            return module.__dict__
-
-        # Overriding __setattr__ is needed even when __dict__ is overridden.
-        def __setattr__(self, name, value):
-            setattr(module, name, value)
-
-        def __getattr__(self, name):
-            try:
-                value = getattr(module, name)
-                if isinstance(value, ModuleType):
-                    value = _make_submodule_autoimporter_module(ipython,
-                                                                value)
-                return value
-            except AttributeError:
-                import_target = "{}.{}".format(self.__name__, name)
-                try:
-                    submodule = importlib.import_module(import_target)
-                except getattr(builtins, "ModuleNotFoundError",
-                               ImportError):  # Py<3.6.
-                    pass
-                else:
-                    _report(ipython, "import {}".format(import_target))
-                    return _make_submodule_autoimporter_module(
-                        ipython, submodule)
-                raise  # Raise AttributeError without chaining ImportError.
-
-    sai_module = SubmoduleAutoImporterModule(module.__name__)
-    # Apparently, `module?` does not trigger descriptors, so we need to
-    # set the docstring explicitly (on the instance, not on the class).
-    # Then then only difference in the output of `module?` becomes the type
-    # (`SubmoduleAutoImportModule` instead of `module`), which we should keep
-    # for clarity.
-    ModuleType.__setattr__(sai_module, "__doc__", module.__doc__)
-    return sai_module
+    saim = _SubmoduleAutoImporterModule(module.__name__)
+    for k, v in [
+            ("_SubmoduleAutoImporterModule__module", module),
+            ("_SubmoduleAutoImporterModule__ipython", ipython),
+            # Apparently, `module?` does not trigger descriptors, so we need to
+            # set the docstring explicitly (on the instance, not on the class).
+            # Then then only difference in the output of `module?` becomes the
+            # type (`SubmoduleAutoImportModule` instead of `module`), which we
+            # should keep for clarity.
+            ("__doc__", module.__doc__),
+    ]:
+        ModuleType.__setattr__(saim, k, v)
+    return saim
 
 
 class _AutoImporterMap(dict):
@@ -231,6 +232,9 @@ def _install_namespace(ipython):
     # (both with and without Jedi).
     ipython.user_ns = ipython.Completer.namespace = (
         _AutoImporterMap(ipython))
+    if hasattr(IPython.core, "guarded_eval"):
+        (IPython.core.guarded_eval.EVALUATION_POLICIES["limited"]
+         .allowed_getattr.add(_SubmoduleAutoImporterModule))
 
 
 def _uninstall_namespace(ipython):
@@ -266,7 +270,7 @@ def autoimport(arg):
 def load_ipython_extension(ipython):
     _install_namespace(ipython)
     ipython.register_magics(_PatchedMagics)  # Add warning to timing magics.
-    register_line_magic(autoimport)
+    magic.register_line_magic(autoimport)
 
 
 def unload_ipython_extension(ipython):
