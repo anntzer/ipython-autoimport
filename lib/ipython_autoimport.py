@@ -65,7 +65,8 @@ def _get_import_cache(ipython):
                 ipython.history_load_length, raw=True)):
         if entry.startswith("%autoimport"):
             try:
-                args = parse_argstring(autoimport, entry[len("%autoimport"):])
+                args = parse_argstring(
+                    AutoImportMagics.autoimport, entry[len("%autoimport"):])
                 if args.clear:
                     import_cache.pop(args.clear, None)
             except UsageError:
@@ -241,36 +242,40 @@ def _uninstall_namespace(ipython):
     ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
 
 
-@magic_arguments()
-@argument("-c", "--clear", type=str, help="Clear cache for this symbol")
-@argument("-l", "--list", dest="list", action="store_const",
-          const=True, default=False,
-          help="Show autoimports from this session")
-def autoimport(arg):
-    ipython = get_ipython()
-    args = parse_argstring(autoimport, arg)
+@magic.magics_class
+class AutoImportMagics(magic.Magics):
+    @magic.line_magic
+    @magic_arguments()
+    @argument("-c", "--clear", type=str, help="Clear cache for this symbol")
+    @argument("-l", "--list", dest="list", action="store_const",
+            const=True, default=False,
+            help="Show autoimports from this session")
+    def autoimport(self, arg):
+        args = parse_argstring(AutoImportMagics.autoimport, arg)
 
-    if args.clear:
-        if ipython.user_ns._import_cache.pop(args.clear, None):
-            _report(ipython,
+        if args.clear:
+            if self.shell.user_ns._import_cache.pop(args.clear, None):
+                _report(
+                    self.shell,
                     f"cleared symbol {args.clear!r} from autoimport cache.")
-        else:
-            _report(ipython,
+            else:
+                _report(
+                    self.shell,
                     f"didn't find symbol {args.clear!r} in autoimport cache.")
 
-    if args.list:
-        if ipython.user_ns._imported:
-            _report(ipython,
-                    "the following autoimports were run:\n{}".format(
-                        "\n".join(ipython.user_ns._imported)))
-        else:
-            _report(ipython, "no autoimports in this session yet.")
+        if args.list:
+            if self.shell.user_ns._imported:
+                _report(self.shell,
+                        "the following autoimports were run:\n{}".format(
+                            "\n".join(self.shell.user_ns._imported)))
+            else:
+                _report(self.shell, "no autoimports in this session yet.")
 
 
 def load_ipython_extension(ipython):
     _install_namespace(ipython)
     ipython.register_magics(_PatchedMagics)  # Add warning to timing magics.
-    magic.register_line_magic(autoimport)
+    ipython.register_magics(AutoImportMagics)
 
 
 def unload_ipython_extension(ipython):
