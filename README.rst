@@ -93,3 +93,10 @@ When using Jedi autocompletion (the default if Jedi is installed as of IPython
 failure, because Jedi purposefully converts the global dict to a namespace
 object and looks up attributes using ``getattr_static``.  Jedi can be disabled
 by adding ``c.Completer.use_jedi = False`` to the ``ipython_config.py`` file.
+
+Changelog
+---------
+
+next
+~~~~
+- Avoid erroring when exiting IPython≥8.15.

@@ -199,7 +199,10 @@ class _AutoImporterMap(dict):
 
     def __delitem__(self, name):
         super().__delitem__(name)
-        delattr(self._ipython.user_module, name)
+        try:
+            delattr(self._ipython.user_module, name)
+        except AttributeError:
+            raise KeyError(name)
 
 
 def _patch_magic(func):
