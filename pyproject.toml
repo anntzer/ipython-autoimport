@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ipython-autoimport"
+description = "Automagically import missing modules in IPython."
+readme = "README.rst"
+authors = [{name = "Antony Lee"}]
+urls = {Repository = "https://github.com/anntzer/ipython-autoimport"}
+license = {text = "zlib"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: IPython",
+    "License :: OSI Approved :: zlib/libpng License",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "ipython>=4.1",  # IPython#8985 is needed for tests to pass(?).
+    "importlib_metadata; python_version<'3.8'",
+]
+dynamic = ["version"]
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
+fallback_version = "0+unknown"
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["ipython_autoimport"]
+
+[tool.coverage.paths]
+source = ["src/", "/**/python*/site-packages/"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "error::DeprecationWarning:ipython_autoimport",
+]
