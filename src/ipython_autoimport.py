@@ -24,14 +24,11 @@ from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
 try:
-    import importlib.metadata as importlib_metadata
+    import importlib.metadata as _im
 except ImportError:
-    try:
-        import importlib_metadata
-    except ImportError:
-        importlib_metadata = None
+    import importlib_metadata as _im
 try:
-    __version__ = importlib_metadata.version("ipython-autoimport")
+    __version__ = _im.version("ipython-autoimport")
 except (AttributeError, ImportError):  # AttrError if i_m is missing.
     __version__ = "(unknown version)"
 
