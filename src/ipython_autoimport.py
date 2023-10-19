@@ -14,6 +14,7 @@ import os
 import sys
 import token
 from types import ModuleType
+import warnings
 
 import IPython.core
 from IPython.core import magic
@@ -70,7 +71,9 @@ def _get_import_cache(ipython):
                 pass
         else:
             try:
-                parsed = ast.parse(entry)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", SyntaxWarning)
+                    parsed = ast.parse(entry)
             except SyntaxError:
                 continue
             Visitor().visit(parsed)
