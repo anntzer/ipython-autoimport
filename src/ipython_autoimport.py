@@ -289,8 +289,8 @@ def unload_ipython_extension(ipython):
 if __name__ == "__main__":
     if os.isatty(sys.stdout.fileno()):
         print("""\
-# Please append the output of this command to the
-# output of `ipython profile locate` (typically
+# Please append the output of this command to the config file in
+# the directory specified by `ipython profile locate` (typically
 # `~/.ipython/profile_default/ipython_config.py`)
 """)
     print("""\

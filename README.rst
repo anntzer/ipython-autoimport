@@ -67,6 +67,10 @@ Then, append the output of ``python -m ipython_autoimport`` to the
 locate`` (typically ``~/.ipython/profile_default/``).  If you don't have such a
 file at all, first create it with ``ipython profile create``.
 
+When using Spyder, the above registration method will not work; instead, add
+``%load_ext ipython_autoimport`` to the
+``Preferences → IPython console → Startup → Run code`` option.
+
 Note that upon loading, ``ipython_autoimport`` will register its submodule
 auto-importer to IPython's "limited evalutation" completer policy (on IPython
 versions that support it).
