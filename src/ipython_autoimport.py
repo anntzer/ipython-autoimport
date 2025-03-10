@@ -89,9 +89,16 @@ def _report(ipython, msg):
         sys.stdout._raw = True
     except AttributeError:
         pass
-    cs = PyColorize.Parser().color_table[ipython.colors].colors
-    # Token.NUMBER: bright blue (cyan), looks reasonable.
-    print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
+    if IPython.version_info >= (9,):
+        import pygments  # Only a dependency from IPython 4.2.0.
+        print(PyColorize.theme_table[ipython.colors].format([
+            (pygments.token.Number, "Autoimport: "),
+            (pygments.token.Text, msg),
+        ]))
+    else:
+        cs = PyColorize.Parser().color_table[ipython.colors].colors
+        # Token.NUMBER: bright blue (cyan), looks reasonable.
+        print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
 
 
 class _SubmoduleAutoImporterModule(ModuleType):
