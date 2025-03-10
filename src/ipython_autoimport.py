@@ -12,7 +12,6 @@ import functools
 import importlib
 import os
 import sys
-import token
 from types import ModuleType
 import warnings
 
@@ -23,6 +22,7 @@ from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring)
 from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
+from pygments import token  # Import token from pygments instead
 
 try:
     import importlib.metadata as _im
@@ -89,9 +89,12 @@ def _report(ipython, msg):
         sys.stdout._raw = True
     except AttributeError:
         pass
-    cs = PyColorize.Parser().color_table[ipython.colors].colors
-    # Token.NUMBER: bright blue (cyan), looks reasonable.
-    print("{}Autoimport:{} {}".format(cs[token.NUMBER], cs["normal"], msg))
+    # Update to use the new theme_table and format method
+    print(
+        PyColorize.theme_table[ipython.colors].format(
+            [(token.Number, f"Autoimport: {msg}")]
+        )
+    )
 
 
 class _SubmoduleAutoImporterModule(ModuleType):
