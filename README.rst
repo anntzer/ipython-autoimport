@@ -101,10 +101,10 @@ by adding ``c.Completer.use_jedi = False`` to the ``ipython_config.py`` file.
 Changelog
 ---------
 
-next
-~~~~
+v0.5.1 (2025-03-11)
+~~~~~~~~~~~~~~~~~~~
 - Fix compatibility with IPython 9's new theme system.
 
-v0.5
-~~~~
+v0.5 (2024-08-20)
+~~~~~~~~~~~~~~~~~
 - Avoid erroring when exiting IPython≥8.15.
