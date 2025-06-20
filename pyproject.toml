@@ -8,12 +8,8 @@ description = "Automagically import missing modules in IPython."
 readme = "README.rst"
 authors = [{name = "Antony Lee"}]
 urls = {Repository = "https://github.com/anntzer/ipython-autoimport"}
-license = {text = "zlib"}
 classifiers = [
-    "Development Status :: 4 - Beta",
     "Framework :: IPython",
-    "License :: OSI Approved :: zlib/libpng License",
-    "Programming Language :: Python :: 3",
 ]
 requires-python = ">=3.7"
 dependencies = [
