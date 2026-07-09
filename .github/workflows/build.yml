@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
     - uses: actions/checkout@v5
     - uses: actions/setup-python@v6
@@ -18,8 +18,8 @@ jobs:
       run: |
         python -mpip install --upgrade pip setuptools wheel pytest pytest-cov
         case '${{ matrix.python-version }}' in
-        3.7)
-          pip install ipython==4.1.0;;
+        3.11)
+          pip install ipython==9.0.0;;
         esac
         python -mpip install .
     - name: Test

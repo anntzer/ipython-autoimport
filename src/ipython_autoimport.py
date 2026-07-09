@@ -10,6 +10,7 @@ import ast
 import builtins
 import functools
 import importlib
+import importlib.metadata
 import os
 import sys
 import token
@@ -21,16 +22,13 @@ from IPython.core import magic
 from IPython.core.error import UsageError
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring)
+from IPython.core.interactiveshell import make_main_module_type
 from IPython.core.magics.execution import ExecutionMagics
 from IPython.utils import PyColorize
 
 try:
-    import importlib.metadata as _im
+    __version__ = importlib.metadata.version("ipython-autoimport")
 except ImportError:
-    import importlib_metadata as _im
-try:
-    __version__ = _im.version("ipython-autoimport")
-except (AttributeError, ImportError):  # AttrError if i_m is missing.
     __version__ = "(unknown version)"
 
 
@@ -203,20 +201,6 @@ class _AutoImporterMap(dict):
         else:
             return value
 
-    # Ensure that closures that attempt to resolve into globals get the right
-    # values.
-
-    def __setitem__(self, name, value):
-        super().__setitem__(name, value)
-        setattr(self._ipython.user_module, name, value)
-
-    def __delitem__(self, name):
-        super().__delitem__(name)
-        try:
-            delattr(self._ipython.user_module, name)
-        except AttributeError:
-            raise KeyError(name)
-
 
 def _patch_magic(func):
     @functools.wraps(func)
@@ -245,17 +229,29 @@ class _UnpatchedMagics(ExecutionMagics):
 
 
 def _install_namespace(ipython):
+    ns = _AutoImporterMap(ipython)
+    # Use a __main__ module whose __dict__ *is* `ns`, so that IPython execs
+    # cells (`exec(code, user_module.__dict__, user_ns)`) with the map as
+    # *both* globals and locals.  A single shared object is what makes `global`
+    # writes inside functions visible to top-level code (gh-10): those writes
+    # go through STORE_GLOBAL, which bypasses __setitem__ and hits the
+    # underlying dict storage directly.
+    module = make_main_module_type(ns)()
+    ipython.user_module = sys.modules[module.__name__] = module
     # `Completer.namespace` needs to be overriden too, for completion to work
     # (both with and without Jedi).
-    ipython.user_ns = ipython.Completer.namespace = (
-        _AutoImporterMap(ipython))
+    ipython.user_ns = ipython.Completer.namespace = ns
     if hasattr(IPython.core, "guarded_eval"):
         (IPython.core.guarded_eval.EVALUATION_POLICIES["limited"]
          .allowed_getattr.add(_SubmoduleAutoImporterModule))
 
 
 def _uninstall_namespace(ipython):
-    ipython.user_ns = ipython.Completer.namespace = dict(ipython.user_ns)
+    module = ModuleType(ipython.user_module.__name__,
+                        ipython.user_module.__doc__)
+    module.__dict__.update(ipython.user_ns)
+    ipython.user_module = sys.modules[module.__name__] = module
+    ipython.user_ns = ipython.Completer.namespace = module.__dict__
 
 
 @magic.magics_class

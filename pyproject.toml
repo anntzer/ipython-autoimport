@@ -11,10 +11,9 @@ urls = {Repository = "https://github.com/anntzer/ipython-autoimport"}
 classifiers = [
     "Framework :: IPython",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 dependencies = [
-    "ipython>=4.1",  # IPython#8985 is needed for tests to pass(?).
-    "importlib_metadata; python_version<'3.8'",
+    "ipython>=9",  # make_main_module_type is needed for the namespace shim.
 ]
 dynamic = ["version"]
 

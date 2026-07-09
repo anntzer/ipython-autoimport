@@ -105,6 +105,9 @@ next
 ~~~~
 - This is the first version to include LLM-generated code; earlier ones were
   fully human-written.
+- Fix ``global`` writes inside functions not being visible to top-level code
+  (gh-10).
+- Require IPython≥9 and Python≥3.11.
 
 v0.5.1 (2025-03-11)
 ~~~~~~~~~~~~~~~~~~~

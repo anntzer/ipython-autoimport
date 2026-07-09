@@ -82,6 +82,19 @@ def test_del(ip):
     assert captured.stdout == "ok\n"
 
 
+def test_global(ip):
+    # A `global` write inside a function must be visible to top-level code,
+    # both across cells and within the same cell (gh-10).
+    ip.run_cell("x = 'AAAAA'")
+    ip.run_cell("def f():\n global x\n x = 'BBBBB'\nf()")
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("print(x)")
+    assert captured.stdout == "BBBBB\n"
+    with IPython.utils.io.capture_output() as captured:
+        ip.run_cell("def g():\n global y\n y = 'CCCCC'\ng()\nprint(y)")
+    assert captured.stdout == "CCCCC\n"
+
+
 def test_list(ip):
     ip.run_cell("os")
     with IPython.utils.io.capture_output() as captured:
