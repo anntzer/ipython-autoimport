@@ -1,10 +1,15 @@
 from pathlib import Path
+import re
 import tokenize
 
 import IPython.utils.io
 import IPython.testing.globalipapp
 import ipython_autoimport
 import pytest
+
+
+def _normalize_display_count(stdout):
+    return re.sub(r"Out\[\d+\]:", "Out[N]:", stdout)
 
 
 @pytest.fixture(scope="module")
@@ -35,8 +40,8 @@ def test_autoimport(ip, name):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("{}.__name__".format(name))
     parts = name.split(".")
-    assert (captured.stdout
-            == "{}Out[1]: {!r}\n".format(
+    assert (_normalize_display_count(captured.stdout)
+            == "{}Out[N]: {!r}\n".format(
                 "".join("Autoimport: import {}\n".format(
                     ".".join(parts[:i + 1])) for i in range(len(parts))),
                 name))
@@ -46,7 +51,8 @@ def test_sub_submodule(ip):
     ip.run_cell("import a.b")
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("a.b.c.__name__")
-    assert captured.stdout == "Autoimport: import a.b.c\nOut[1]: 'a.b.c'\n"
+    assert (_normalize_display_count(captured.stdout)
+            == "Autoimport: import a.b.c\nOut[N]: 'a.b.c'\n")
 
 
 def test_no_import(ip):
@@ -60,13 +66,14 @@ def test_no_import(ip):
 def test_setattr(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("a; a.b = 42; 'b' in vars(a), a.b")
-    assert captured.stdout == "Autoimport: import a\nOut[1]: (True, 42)\n"
+    assert (_normalize_display_count(captured.stdout)
+            == "Autoimport: import a\nOut[N]: (True, 42)\n")
 
 
 def test_closure(ip):
     with IPython.utils.io.capture_output() as captured:
         ip.run_cell("x = 1; (lambda: x)()")
-    assert captured.stdout == "Out[1]: 1\n"
+    assert _normalize_display_count(captured.stdout) == "Out[N]: 1\n"
 
 
 def test_del(ip):
