@@ -101,6 +101,11 @@ by adding ``c.Completer.use_jedi = False`` to the ``ipython_config.py`` file.
 Changelog
 ---------
 
+next
+~~~~
+- This is the first version to include LLM-generated code; earlier ones were
+  fully human-written.
+
 v0.5.1 (2025-03-11)
 ~~~~~~~~~~~~~~~~~~~
 - Fix compatibility with IPython 9's new theme system.
